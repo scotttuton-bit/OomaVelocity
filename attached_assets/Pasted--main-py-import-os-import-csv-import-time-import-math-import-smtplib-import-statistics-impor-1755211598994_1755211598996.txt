@@ -1,0 +1,147 @@
+# main.py
+import os
+import csv
+import time
+import math
+import smtplib
+import statistics
+import speedtest
+from datetime import datetime
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# ========= Configuration (env first, fallback to defaults) =========
+GMAIL_USER = os.getenv("GMAIL_USER", "your_email@gmail.com")
+GMAIL_PASS = os.getenv("GMAIL_PASS", "your_app_password")   # Use a Gmail App Password
+ALERT_TO   = os.getenv("ALERT_TO",   "recipient_email@gmail.com")
+
+CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", "600"))  # seconds (default 10 min)
+WINDOW_SIZE    = int(os.getenv("WINDOW_SIZE", "10"))       # rolling-average window size
+THRESHOLD_DROP = float(os.getenv("THRESHOLD_DROP", "0.5")) # 0.5 = 50% of avg
+THRESHOLD_PING = float(os.getenv("THRESHOLD_PING", "2.0")) # 2.0 = 200% of avg
+
+LOG_DIR  = os.getenv("LOG_DIR", "logs")
+LOG_FILE = os.path.join(LOG_DIR, "speed_log.csv")
+
+# ========= Storage for rolling averages =========
+down_hist, up_hist, ping_hist = [], [], []
+
+# ========= Helpers =========
+def ensure_log():
+    os.makedirs(LOG_DIR, exist_ok=True)
+    new_file = not os.path.exists(LOG_FILE)
+    if new_file:
+        with open(LOG_FILE, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow([
+                "timestamp_iso",
+                "download_mbps", "upload_mbps", "ping_ms",
+                "avg_download_mbps", "avg_upload_mbps", "avg_ping_ms",
+                "alert_flags"  # e.g., "DOWN50,UP50,PING2X,TESTFAIL"
+            ])
+
+def send_email(subject: str, body: str):
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = GMAIL_USER
+        msg["To"] = ALERT_TO
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+            s.login(GMAIL_USER, GMAIL_PASS)
+            s.send_message(msg)
+        print(f"[EMAIL SENT] {subject}")
+    except Exception as e:
+        print(f"[EMAIL ERROR] {e}")
+
+def run_speedtest():
+    st = speedtest.Speedtest()
+    st.get_best_server()
+    down = st.download() / 1_000_000  # Mbps
+    up   = st.upload() / 1_000_000    # Mbps
+    ping = st.results.ping            # ms
+    return down, up, ping
+
+def roll(values, new_value, maxlen):
+    values.append(new_value)
+    if len(values) > maxlen:
+        values.pop(0)
+    return values
+
+def safe_mean(values):
+    return statistics.fmean(values) if values else math.nan
+
+# ========= Main monitor loop =========
+def main():
+    ensure_log()
+    print("Ooma / Router Network Monitor starting…")
+    print(f"- Interval: {CHECK_INTERVAL}s  | Window: {WINDOW_SIZE}  | Drop<than {THRESHOLD_DROP*100:.0f}% of avg  | Ping>{THRESHOLD_PING}× avg")
+    print("Using Gmail alerts →", ALERT_TO)
+
+    while True:
+        ts = datetime.utcnow().isoformat()
+        alert_flags = []
+
+        try:
+            down, up, ping = run_speedtest()
+            print(f"[{ts}] ↓ {down:.2f} Mbps  ↑ {up:.2f} Mbps  ping {ping:.1f} ms")
+
+            # Update rolling windows
+            roll(down_hist, down, WINDOW_SIZE)
+            roll(up_hist, up, WINDOW_SIZE)
+            roll(ping_hist, ping, WINDOW_SIZE)
+
+            # Compute current rolling averages
+            avg_down = safe_mean(down_hist)
+            avg_up   = safe_mean(up_hist)
+            avg_ping = safe_mean(ping_hist)
+
+            # Only alert once we have a baseline (>= WINDOW_SIZE/2 samples)
+            baseline_ready = len(down_hist) >= max(3, WINDOW_SIZE // 2)
+
+            if baseline_ready:
+                if avg_down > 0 and down < avg_down * THRESHOLD_DROP:
+                    alert_flags.append("DOWN50")
+                if avg_up > 0 and up < avg_up * THRESHOLD_DROP:
+                    alert_flags.append("UP50")
+                if avg_ping > 0 and ping > avg_ping * THRESHOLD_PING:
+                    alert_flags.append("PING2X")
+
+            # Log row
+            with open(LOG_FILE, "a", newline="") as f:
+                w = csv.writer(f)
+                w.writerow([
+                    ts,
+                    f"{down:.4f}", f"{up:.4f}", f"{ping:.2f}",
+                    f"{avg_down:.4f}", f"{avg_up:.4f}", f"{avg_ping:.2f}",
+                    ",".join(alert_flags)
+                ])
+
+            # Send alerts (one email covering all triggered flags)
+            if alert_flags:
+                subject = "⚠ Ooma Network Alert: " + " & ".join(alert_flags)
+                body = (
+                    f"Time (UTC): {ts}\n"
+                    f"Current:   ↓ {down:.2f} Mbps | ↑ {up:.2f} Mbps | ping {ping:.1f} ms\n"
+                    f"Baseline:  ↓ {avg_down:.2f} Mbps | ↑ {avg_up:.2f} Mbps | ping {avg_ping:.1f} ms\n"
+                    f"Triggers:  {', '.join(alert_flags)}\n"
+                    f"\nThresholds:\n"
+                    f"- Speed drop alert below {THRESHOLD_DROP*100:.0f}% of rolling average\n"
+                    f"- Ping alert above {THRESHOLD_PING:.1f}× rolling average\n"
+                )
+                send_email(subject, body)
+
+        except Exception as e:
+            # Record the failure + alert (likely outage / DNS / test failure)
+            with open(LOG_FILE, "a", newline="") as f:
+                w = csv.writer(f)
+                w.writerow([ts, "", "", "", "", "", "", "TESTFAIL"])
+            print(f"[{ts}] TESTFAIL: {e}")
+            send_email("⚠ Ooma Network Alert: TESTFAIL", f"Time (UTC): {ts}\nError: {e}")
+
+        print(f"Sleeping {CHECK_INTERVAL/60:.0f} minutes…\n")
+        time.sleep(CHECK_INTERVAL)
+
+if __name__ == "__main__":
+    main()

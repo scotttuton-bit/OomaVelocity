@@ -126,16 +126,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             for (const row of results) {
               try {
                 const metric = {
-                  timestampIso: new Date(row.timestamp_iso),
+                  timestampIso: new Date(row.timestamp || row.timestamp_iso),
                   downloadMbps: parseFloat(row.download_mbps) || null,
                   uploadMbps: parseFloat(row.upload_mbps) || null,
                   pingMs: parseFloat(row.ping_ms) || null,
-                  avgDownloadMbps: parseFloat(row.avg_download_mbps) || null,
-                  avgUploadMbps: parseFloat(row.avg_upload_mbps) || null,
-                  avgPingMs: parseFloat(row.avg_ping_ms) || null,
+                  avgDownloadMbps: parseFloat(row.avg_download_mbps) || parseFloat(row.download_mbps) || null,
+                  avgUploadMbps: parseFloat(row.avg_upload_mbps) || parseFloat(row.upload_mbps) || null,
+                  avgPingMs: parseFloat(row.avg_ping_ms) || parseFloat(row.ping_ms) || null,
                   alertFlags: row.alert_flags || null,
-                  deviceId: req.body.deviceId || 'default-device',
-                  location: req.body.location || null,
+                  deviceId: row.device_id || req.body.deviceId || 'default-device',
+                  location: row.location || req.body.location || null,
                 };
 
                 await storage.createNetworkMetric(metric);

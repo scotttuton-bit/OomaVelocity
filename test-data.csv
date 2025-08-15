@@ -1,0 +1,5 @@
+timestamp,download_mbps,upload_mbps,ping_ms,device_id,location
+2025-08-15T10:00:00.000Z,125.5,22.3,18.2,175a7ea9-883d-4b73-b62e-61514c33f02d,San Francisco CA
+2025-08-15T10:05:00.000Z,134.2,24.1,16.8,175a7ea9-883d-4b73-b62e-61514c33f02d,San Francisco CA
+2025-08-15T10:00:00.000Z,89.3,14.5,28.9,41d18881-e6ec-457b-9881-6fd68cb11935,Austin TX
+2025-08-15T10:05:00.000Z,91.7,15.2,27.1,41d18881-e6ec-457b-9881-6fd68cb11935,Austin TX

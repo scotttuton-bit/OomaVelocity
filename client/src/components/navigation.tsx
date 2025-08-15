@@ -1,7 +1,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
-export function Navigation() {
+type ViewType = 'dashboard' | 'analytics' | 'alerts' | 'devices' | 'maps' | 'export';
+
+interface NavigationProps {
+  activeView: ViewType;
+  setActiveView: (view: ViewType) => void;
+}
+
+export function Navigation({ activeView, setActiveView }: NavigationProps) {
   return (
     <nav className="bg-surface border-b border-gray-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,21 +19,56 @@ export function Navigation() {
               <h1 className="text-xl font-semibold">Ooma Network Intelligence</h1>
             </div>
             <div className="hidden md:ml-10 md:flex md:space-x-8">
-              <a href="#dashboard" className="text-primary border-b-2 border-primary px-1 pt-1 pb-4 text-sm font-medium">
+              <button 
+                onClick={() => setActiveView('dashboard')}
+                className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
+                  activeView === 'dashboard' 
+                    ? 'text-primary border-primary' 
+                    : 'text-gray-300 hover:text-white border-transparent'
+                }`}
+              >
                 Dashboard
-              </a>
-              <a href="#analytics" className="text-gray-300 hover:text-white px-1 pt-1 pb-4 text-sm font-medium">
+              </button>
+              <button 
+                onClick={() => setActiveView('analytics')}
+                className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
+                  activeView === 'analytics' 
+                    ? 'text-primary border-primary' 
+                    : 'text-gray-300 hover:text-white border-transparent'
+                }`}
+              >
                 Analytics
-              </a>
-              <a href="#alerts" className="text-gray-300 hover:text-white px-1 pt-1 pb-4 text-sm font-medium">
+              </button>
+              <button 
+                onClick={() => setActiveView('alerts')}
+                className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
+                  activeView === 'alerts' 
+                    ? 'text-primary border-primary' 
+                    : 'text-gray-300 hover:text-white border-transparent'
+                }`}
+              >
                 Alerts
-              </a>
-              <a href="#devices" className="text-gray-300 hover:text-white px-1 pt-1 pb-4 text-sm font-medium">
+              </button>
+              <button 
+                onClick={() => setActiveView('devices')}
+                className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
+                  activeView === 'devices' 
+                    ? 'text-primary border-primary' 
+                    : 'text-gray-300 hover:text-white border-transparent'
+                }`}
+              >
                 Devices
-              </a>
-              <a href="#maps" className="text-gray-300 hover:text-white px-1 pt-1 pb-4 text-sm font-medium">
+              </button>
+              <button 
+                onClick={() => setActiveView('maps')}
+                className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
+                  activeView === 'maps' 
+                    ? 'text-primary border-primary' 
+                    : 'text-gray-300 hover:text-white border-transparent'
+                }`}
+              >
                 Network Map
-              </a>
+              </button>
             </div>
           </div>
           <div className="flex items-center space-x-4">

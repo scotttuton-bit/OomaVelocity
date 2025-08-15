@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Navigation } from "@/components/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { RealTimeMetrics } from "@/components/real-time-metrics";
@@ -5,19 +6,91 @@ import { ChartsSection } from "@/components/charts-section";
 import { AlertsAndDevices } from "@/components/alerts-devices";
 import { GeographicMap } from "@/components/geographic-map";
 import { DataExport } from "@/components/data-export";
+import { DeviceManagement } from "@/components/device-management";
+import { AnalyticsSection } from "@/components/analytics-section";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWebSocket } from "@/hooks/use-websocket";
 
+type ViewType = 'dashboard' | 'analytics' | 'alerts' | 'devices' | 'maps' | 'export';
+
 export default function Dashboard() {
+  const [activeView, setActiveView] = useState<ViewType>('dashboard');
   useWebSocket(); // Initialize WebSocket connection for real-time updates
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return (
+          <>
+            <RealTimeMetrics />
+            <ChartsSection />
+          </>
+        );
+      case 'analytics':
+        return <AnalyticsSection />;
+      case 'alerts':
+        return <AlertsAndDevices />;
+      case 'devices':
+        return <DeviceManagement />;
+      case 'maps':
+        return <GeographicMap />;
+      case 'export':
+        return <DataExport />;
+      default:
+        return (
+          <>
+            <RealTimeMetrics />
+            <ChartsSection />
+          </>
+        );
+    }
+  };
+
+  const getViewTitle = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return 'Real-time Network Dashboard';
+      case 'analytics':
+        return 'Historical Analytics';
+      case 'alerts':
+        return 'Alert Management';
+      case 'devices':
+        return 'Device Management';
+      case 'maps':
+        return 'Geographic Network Map';
+      case 'export':
+        return 'Data Export';
+      default:
+        return 'Real-time Network Dashboard';
+    }
+  };
+
+  const getViewDescription = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return 'Monitor network performance across all connected devices and locations';
+      case 'analytics':
+        return 'Analyze historical network performance trends and patterns';
+      case 'alerts':
+        return 'Manage network alerts and device monitoring notifications';
+      case 'devices':
+        return 'Configure and monitor network devices and their status';
+      case 'maps':
+        return 'Visualize network performance geographically across locations';
+      case 'export':
+        return 'Export network data and generate performance reports';
+      default:
+        return 'Monitor network performance across all connected devices and locations';
+    }
+  };
 
   return (
     <div className="bg-dark text-white font-sans dark min-h-screen">
-      <Navigation />
+      <Navigation activeView={activeView} setActiveView={setActiveView} />
       
       <div className="flex h-screen pt-16">
-        <Sidebar />
+        <Sidebar activeView={activeView} setActiveView={setActiveView} />
         
         {/* Main Content */}
         <div className="lg:pl-64 flex flex-col flex-1 overflow-hidden">
@@ -28,8 +101,8 @@ export default function Dashboard() {
                 <div className="mb-8">
                   <div className="sm:flex sm:items-center sm:justify-between">
                     <div>
-                      <h1 className="text-3xl font-bold text-white">Real-time Network Dashboard</h1>
-                      <p className="mt-2 text-sm text-gray-400">Monitor network performance across all connected devices and locations</p>
+                      <h1 className="text-3xl font-bold text-white">{getViewTitle()}</h1>
+                      <p className="mt-2 text-sm text-gray-400">{getViewDescription()}</p>
                     </div>
                     <div className="mt-4 sm:mt-0 sm:ml-4 flex space-x-3">
                       <Select defaultValue="1h">
@@ -51,11 +124,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <RealTimeMetrics />
-                <ChartsSection />
-                <AlertsAndDevices />
-                <GeographicMap />
-                <DataExport />
+                {renderActiveView()}
               </div>
             </div>
           </main>

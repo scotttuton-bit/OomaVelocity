@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 
-export function Sidebar() {
+type ViewType = 'dashboard' | 'analytics' | 'alerts' | 'devices' | 'maps' | 'export';
+
+interface SidebarProps {
+  activeView: ViewType;
+  setActiveView: (view: ViewType) => void;
+}
+
+export function Sidebar({ activeView, setActiveView }: SidebarProps) {
   const { data: stats } = useQuery<{
     activeDevices: number;
     networkScore: number;
@@ -44,30 +51,72 @@ export function Sidebar() {
           <div>
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Navigation</h3>
             <nav className="mt-3 space-y-1">
-              <a href="#" className="bg-primary text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              <button 
+                onClick={() => setActiveView('dashboard')}
+                className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
+                  activeView === 'dashboard' 
+                    ? 'bg-primary text-white' 
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
                 <i className="fas fa-tachometer-alt mr-3"></i>
                 Real-time Dashboard
-              </a>
-              <a href="#" className="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              </button>
+              <button 
+                onClick={() => setActiveView('analytics')}
+                className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
+                  activeView === 'analytics' 
+                    ? 'bg-primary text-white' 
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
                 <i className="fas fa-chart-line mr-3"></i>
                 Historical Analytics
-              </a>
-              <a href="#" className="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              </button>
+              <button 
+                onClick={() => setActiveView('alerts')}
+                className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
+                  activeView === 'alerts' 
+                    ? 'bg-primary text-white' 
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
                 <i className="fas fa-exclamation-triangle mr-3"></i>
                 Alert Management
-              </a>
-              <a href="#" className="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              </button>
+              <button 
+                onClick={() => setActiveView('devices')}
+                className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
+                  activeView === 'devices' 
+                    ? 'bg-primary text-white' 
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
                 <i className="fas fa-server mr-3"></i>
                 Device Management
-              </a>
-              <a href="#" className="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              </button>
+              <button 
+                onClick={() => setActiveView('maps')}
+                className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
+                  activeView === 'maps' 
+                    ? 'bg-primary text-white' 
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
                 <i className="fas fa-globe-americas mr-3"></i>
                 Geographic Map
-              </a>
-              <a href="#" className="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              </button>
+              <button 
+                onClick={() => setActiveView('export')}
+                className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
+                  activeView === 'export' 
+                    ? 'bg-primary text-white' 
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
                 <i className="fas fa-download mr-3"></i>
                 Export Data
-              </a>
+              </button>
             </nav>
           </div>
         </div>

@@ -50,4 +50,14 @@ The current architecture does not implement explicit authentication mechanisms, 
 
 **Database Provider**: **Neon Database** provides the serverless PostgreSQL instance, offering automatic scaling and connection pooling for the application.
 
+### Dashboard Duration & Time Range
+
+The dashboard supports configurable time-range viewing via a duration dropdown (1h, 6h, 24h, 7d). Duration state is managed in `dashboard.tsx` and passed as props to `RealTimeMetrics` and `ChartsSection` components. Data is fetched using `/api/metrics?from=ISO&to=ISO` query parameters. Charts use intelligent downsampling to display appropriate data density for each time range. The Refresh button invalidates all TanStack Query caches.
+
+**Query Key Convention**: All TanStack Query keys must use complete URL strings (e.g., `["/api/metrics?from=X&to=Y"]`), never objects as array segments, because the default query function joins segments with `/`.
+
+### Seed Data
+
+The `seed-data.ts` script generates 7 days of realistic network performance data at 5-minute intervals for 2 active devices (~4000 data points). Data includes time-of-day patterns (peak hours, evening, night), realistic variance, occasional outage events, and rolling averages.
+
 The architecture follows modern full-stack patterns with clear separation between frontend presentation, backend API logic, and data persistence layers. The system is designed for real-time monitoring with efficient data flow and responsive user interfaces.

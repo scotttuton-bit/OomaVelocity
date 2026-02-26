@@ -1,11 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import type { NetworkMetric } from "@shared/schema";
+import type { Duration } from "@/pages/dashboard";
+import { durationToMs, durationToLabel } from "@/pages/dashboard";
 
-export function RealTimeMetrics() {
+interface RealTimeMetricsProps {
+  duration: Duration;
+}
+
+function buildTimeRangeUrl(duration: Duration): string {
+  const now = Date.now();
+  const from = new Date(now - durationToMs(duration)).toISOString();
+  const to = new Date(now).toISOString();
+  return `/api/metrics?from=${from}&to=${to}`;
+}
+
+export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
   const { data: latestMetrics } = useQuery<NetworkMetric[]>({
     queryKey: ["/api/metrics/latest"],
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 5000,
+  });
+
+  const { data: rangeMetrics } = useQuery<NetworkMetric[]>({
+    queryKey: ['/api/metrics', duration],
+    queryFn: async () => {
+      const res = await fetch(buildTimeRangeUrl(duration));
+      if (!res.ok) throw new Error('Failed to fetch metrics');
+      return res.json();
+    },
+    refetchInterval: 30000,
+    staleTime: 10000,
   });
 
   const getMainMetric = () => {
@@ -22,35 +46,56 @@ export function RealTimeMetrics() {
       };
     }
 
-    // Use the first metric or aggregate if multiple devices
     const metric = latestMetrics[0];
-    
-    // Calculate quality score based on download speed and ping
-    const qualityScore = Math.min(100, Math.max(0, 
+
+    let avgDownload = metric.avgDownloadMbps || 0;
+    let avgUpload = metric.avgUploadMbps || 0;
+    let avgPing = metric.avgPingMs || 0;
+
+    if (rangeMetrics && rangeMetrics.length > 0) {
+      avgDownload = rangeMetrics.reduce((s, m) => s + (m.downloadMbps || 0), 0) / rangeMetrics.length;
+      avgUpload = rangeMetrics.reduce((s, m) => s + (m.uploadMbps || 0), 0) / rangeMetrics.length;
+      avgPing = rangeMetrics.reduce((s, m) => s + (m.pingMs || 0), 0) / rangeMetrics.length;
+    }
+
+    const qualityScore = Math.min(100, Math.max(0,
       ((metric.downloadMbps || 0) > 100 ? 100 : (metric.downloadMbps || 0)) * 0.6 +
       ((metric.pingMs || 0) < 50 ? 50 - (metric.pingMs || 0) : 0) * 0.4
     ));
+
+    const avgQuality = rangeMetrics && rangeMetrics.length > 0
+      ? rangeMetrics.reduce((s, m) => {
+          const q = Math.min(100, Math.max(0,
+            ((m.downloadMbps || 0) > 100 ? 100 : (m.downloadMbps || 0)) * 0.6 +
+            ((m.pingMs || 0) < 50 ? 50 - (m.pingMs || 0) : 0) * 0.4
+          ));
+          return s + q;
+        }, 0) / rangeMetrics.length
+      : qualityScore;
 
     return {
       downloadSpeed: metric.downloadMbps || 0,
       uploadSpeed: metric.uploadMbps || 0,
       pingLatency: metric.pingMs || 0,
       qualityScore: Math.round(qualityScore * 10) / 10,
-      downloadChange: metric.avgDownloadMbps ? 
-        ((metric.downloadMbps || 0) - metric.avgDownloadMbps) / metric.avgDownloadMbps * 100 : 0,
-      uploadChange: metric.avgUploadMbps ? 
-        ((metric.uploadMbps || 0) - metric.avgUploadMbps) / metric.avgUploadMbps * 100 : 0,
-      pingChange: metric.avgPingMs ? 
-        ((metric.pingMs || 0) - metric.avgPingMs) / metric.avgPingMs * 100 : 0,
-      qualityChange: 2.1,
+      downloadChange: avgDownload > 0
+        ? ((metric.downloadMbps || 0) - avgDownload) / avgDownload * 100
+        : 0,
+      uploadChange: avgUpload > 0
+        ? ((metric.uploadMbps || 0) - avgUpload) / avgUpload * 100
+        : 0,
+      pingChange: avgPing > 0
+        ? ((metric.pingMs || 0) - avgPing) / avgPing * 100
+        : 0,
+      qualityChange: Math.round((qualityScore - avgQuality) * 10) / 10,
     };
   };
 
   const metrics = getMainMetric();
+  const periodLabel = durationToLabel(duration);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {/* Download Speed Card */}
       <Card className="bg-surface border-gray-700">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
@@ -71,13 +116,12 @@ export function RealTimeMetrics() {
               <span className={metrics.downloadChange >= 0 ? 'text-success' : 'text-error'}>
                 {Math.abs(metrics.downloadChange).toFixed(1)}%
               </span>
-              <span className="text-gray-400 ml-1">from avg</span>
+              <span className="text-gray-400 ml-1">vs {periodLabel.toLowerCase()}</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Upload Speed Card */}
       <Card className="bg-surface border-gray-700">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
@@ -98,13 +142,12 @@ export function RealTimeMetrics() {
               <span className={metrics.uploadChange >= 0 ? 'text-success' : 'text-error'}>
                 {Math.abs(metrics.uploadChange).toFixed(1)}%
               </span>
-              <span className="text-gray-400 ml-1">from avg</span>
+              <span className="text-gray-400 ml-1">vs {periodLabel.toLowerCase()}</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Ping/Latency Card */}
       <Card className="bg-surface border-gray-700">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
@@ -125,13 +168,12 @@ export function RealTimeMetrics() {
               <span className={metrics.pingChange <= 0 ? 'text-success' : 'text-warning'}>
                 {Math.abs(metrics.pingChange).toFixed(1)}%
               </span>
-              <span className="text-gray-400 ml-1">from avg</span>
+              <span className="text-gray-400 ml-1">vs {periodLabel.toLowerCase()}</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Network Quality Score Card */}
       <Card className="bg-surface border-gray-700">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
@@ -148,9 +190,11 @@ export function RealTimeMetrics() {
           </div>
           <div className="mt-4">
             <div className="flex items-center text-sm">
-              <i className="fas fa-arrow-up text-success mr-1"></i>
-              <span className="text-success">+{metrics.qualityChange.toFixed(1)}</span>
-              <span className="text-gray-400 ml-1">points</span>
+              <i className={`fas ${metrics.qualityChange >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-error'} mr-1`}></i>
+              <span className={metrics.qualityChange >= 0 ? 'text-success' : 'text-error'}>
+                {metrics.qualityChange >= 0 ? '+' : ''}{metrics.qualityChange.toFixed(1)}
+              </span>
+              <span className="text-gray-400 ml-1">pts vs {periodLabel.toLowerCase()}</span>
             </div>
           </div>
         </CardContent>

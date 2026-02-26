@@ -1,23 +1,41 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { createSpeedChart, createLatencyChart } from "@/lib/chart-utils";
 import type { NetworkMetric } from "@shared/schema";
+import type { Duration } from "@/pages/dashboard";
+import { durationToMs } from "@/pages/dashboard";
 
-export function ChartsSection() {
+interface ChartsSectionProps {
+  duration: Duration;
+}
+
+function buildTimeRangeUrl(duration: Duration): string {
+  const now = Date.now();
+  const from = new Date(now - durationToMs(duration)).toISOString();
+  const to = new Date(now).toISOString();
+  return `/api/metrics?from=${from}&to=${to}`;
+}
+
+export function ChartsSection({ duration }: ChartsSectionProps) {
   const speedChartRef = useRef<HTMLCanvasElement>(null);
   const latencyChartRef = useRef<HTMLCanvasElement>(null);
   const speedChartInstance = useRef<any>(null);
   const latencyChartInstance = useRef<any>(null);
 
-  const { data: metrics } = useQuery<NetworkMetric[]>({
-    queryKey: ["/api/metrics", { limit: 100 }],
-    refetchInterval: 30000, // Refresh every 30 seconds
+  const { data: metrics, isLoading } = useQuery<NetworkMetric[]>({
+    queryKey: ['/api/metrics', duration],
+    queryFn: async () => {
+      const res = await fetch(buildTimeRangeUrl(duration));
+      if (!res.ok) throw new Error('Failed to fetch metrics');
+      return res.json();
+    },
+    refetchInterval: 30000,
+    staleTime: 10000,
   });
 
   useEffect(() => {
     if (metrics && speedChartRef.current && latencyChartRef.current) {
-      // Destroy existing charts
       if (speedChartInstance.current) {
         speedChartInstance.current.destroy();
       }
@@ -25,24 +43,27 @@ export function ChartsSection() {
         latencyChartInstance.current.destroy();
       }
 
-      // Create new charts
-      speedChartInstance.current = createSpeedChart(speedChartRef.current, metrics);
-      latencyChartInstance.current = createLatencyChart(latencyChartRef.current, metrics);
+      const initCharts = async () => {
+        speedChartInstance.current = await createSpeedChart(speedChartRef.current!, metrics, duration);
+        latencyChartInstance.current = await createLatencyChart(latencyChartRef.current!, metrics, duration);
+      };
+      initCharts();
     }
 
     return () => {
       if (speedChartInstance.current) {
         speedChartInstance.current.destroy();
+        speedChartInstance.current = null;
       }
       if (latencyChartInstance.current) {
         latencyChartInstance.current.destroy();
+        latencyChartInstance.current = null;
       }
     };
-  }, [metrics]);
+  }, [metrics, duration]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      {/* Speed Chart */}
       <Card className="bg-surface border-gray-700">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
@@ -58,13 +79,22 @@ export function ChartsSection() {
               </span>
             </div>
           </div>
-          <div className="h-64">
+          <div className="h-64 relative">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-surface/80 z-10">
+                <div className="text-gray-400">Loading chart data...</div>
+              </div>
+            )}
             <canvas ref={speedChartRef} className="w-full h-full"></canvas>
           </div>
+          {metrics && (
+            <div className="mt-3 text-xs text-gray-500">
+              {metrics.length} data points
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Latency Chart */}
       <Card className="bg-surface border-gray-700">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
@@ -80,9 +110,19 @@ export function ChartsSection() {
               </span>
             </div>
           </div>
-          <div className="h-64">
+          <div className="h-64 relative">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-surface/80 z-10">
+                <div className="text-gray-400">Loading chart data...</div>
+              </div>
+            )}
             <canvas ref={latencyChartRef} className="w-full h-full"></canvas>
           </div>
+          {metrics && (
+            <div className="mt-3 text-xs text-gray-500">
+              {metrics.length} data points
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

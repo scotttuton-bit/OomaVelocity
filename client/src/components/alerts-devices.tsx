@@ -9,7 +9,7 @@ export function AlertsAndDevices() {
   const queryClient = useQueryClient();
 
   const { data: alerts } = useQuery<any[]>({
-    queryKey: ["/api/alerts", { active: true }],
+    queryKey: ["/api/alerts?active=true"],
     refetchInterval: 10000, // Refresh every 10 seconds
   });
 

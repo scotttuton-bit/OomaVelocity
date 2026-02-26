@@ -5,11 +5,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChartsSection } from "@/components/charts-section";
 import type { NetworkMetric } from "@shared/schema";
+import { useState } from "react";
+import type { Duration } from "@/pages/dashboard";
+import { durationToMs } from "@/pages/dashboard";
+
+function buildTimeRangeUrl(duration: Duration): string {
+  const now = Date.now();
+  const from = new Date(now - durationToMs(duration)).toISOString();
+  const to = new Date(now).toISOString();
+  return `/api/metrics?from=${from}&to=${to}`;
+}
 
 export function AnalyticsSection() {
+  const [analyticsDuration, setAnalyticsDuration] = useState<Duration>('24h');
+
   const { data: metrics, isLoading } = useQuery<NetworkMetric[]>({
-    queryKey: ["/api/metrics", { limit: 100 }],
+    queryKey: ['/api/metrics', analyticsDuration],
+    queryFn: async () => {
+      const res = await fetch(buildTimeRangeUrl(analyticsDuration));
+      if (!res.ok) throw new Error('Failed to fetch metrics');
+      return res.json();
+    },
     refetchInterval: 30000,
+    staleTime: 10000,
   });
 
   const calculateStats = () => {
@@ -57,7 +75,7 @@ export function AnalyticsSection() {
           <div className="flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-48">
               <label className="block text-sm text-gray-400 mb-2">Time Range</label>
-              <Select defaultValue="24h">
+              <Select value={analyticsDuration} onValueChange={(v) => setAnalyticsDuration(v as Duration)}>
                 <SelectTrigger className="bg-dark border-gray-600 text-white">
                   <SelectValue />
                 </SelectTrigger>
@@ -66,7 +84,6 @@ export function AnalyticsSection() {
                   <SelectItem value="6h">Last 6 Hours</SelectItem>
                   <SelectItem value="24h">Last 24 Hours</SelectItem>
                   <SelectItem value="7d">Last 7 Days</SelectItem>
-                  <SelectItem value="30d">Last 30 Days</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -141,7 +158,7 @@ export function AnalyticsSection() {
       )}
 
       {/* Charts Section */}
-      <ChartsSection />
+      <ChartsSection duration={analyticsDuration} />
     </div>
   );
 }

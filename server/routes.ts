@@ -168,6 +168,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/devices/locations', async (req, res) => {
+    try {
+      const allDevices = await storage.getDevices();
+      const locationMap = new Map<string, {
+        location: string;
+        latitude: number;
+        longitude: number;
+        total: number;
+        active: number;
+        inactive: number;
+        offline: number;
+        deviceTypes: Record<string, number>;
+      }>();
+
+      for (const device of allDevices) {
+        if (!device.location || device.latitude == null || device.longitude == null) continue;
+
+        const key = device.location;
+        if (!locationMap.has(key)) {
+          locationMap.set(key, {
+            location: device.location,
+            latitude: device.latitude,
+            longitude: device.longitude,
+            total: 0,
+            active: 0,
+            inactive: 0,
+            offline: 0,
+            deviceTypes: {},
+          });
+        }
+
+        const loc = locationMap.get(key)!;
+        loc.total++;
+        if (device.status === 'active') loc.active++;
+        else if (device.status === 'inactive') loc.inactive++;
+        else loc.offline++;
+
+        const dtype = device.deviceType || 'unknown';
+        loc.deviceTypes[dtype] = (loc.deviceTypes[dtype] || 0) + 1;
+      }
+
+      res.json(Array.from(locationMap.values()));
+    } catch (error) {
+      console.error('Error fetching device locations:', error);
+      res.status(500).json({ error: 'Failed to fetch device locations' });
+    }
+  });
+
   // Device management endpoints
   app.get('/api/devices', async (req, res) => {
     try {

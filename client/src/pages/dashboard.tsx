@@ -54,6 +54,7 @@ export default function Dashboard() {
           <>
             <RealTimeMetrics duration={duration} />
             <ChartsSection duration={duration} />
+            <GeographicMap />
           </>
         );
       case 'analytics':

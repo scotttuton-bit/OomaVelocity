@@ -1,71 +1,136 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useRef } from "react";
+import 'leaflet/dist/leaflet.css';
+
+interface LocationGroup {
+  location: string;
+  latitude: number;
+  longitude: number;
+  total: number;
+  active: number;
+  inactive: number;
+  offline: number;
+  deviceTypes: Record<string, number>;
+}
 
 export function GeographicMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
 
-  const { data: devices } = useQuery<any[]>({
-    queryKey: ["/api/devices"],
+  const { data: locations, isLoading } = useQuery<LocationGroup[]>({
+    queryKey: ["/api/devices/locations"],
   });
 
   useEffect(() => {
-    if (mapRef.current && typeof window !== 'undefined') {
-      // Initialize Leaflet map when component mounts
-      const initMap = async () => {
-        try {
-          // Dynamically import Leaflet to avoid SSR issues
-          const L = (await import('leaflet')).default;
-          
-          if (!mapInstance.current && mapRef.current) {
-            mapInstance.current = L.map(mapRef.current).setView([39.8283, -98.5795], 4); // Center of US
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '© OpenStreetMap contributors'
-            }).addTo(mapInstance.current);
+    if (!mapRef.current || typeof window === 'undefined') return;
+
+    const initMap = async () => {
+      try {
+        const L = (await import('leaflet')).default;
+
+        if (mapInstance.current) {
+          mapInstance.current.remove();
+          mapInstance.current = null;
+        }
+
+        mapInstance.current = L.map(mapRef.current!, {
+          zoomControl: true,
+          scrollWheelZoom: true,
+        }).setView([39.0, -98.0], 4);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+          maxZoom: 19,
+        }).addTo(mapInstance.current);
+
+        if (!locations || locations.length === 0) return;
+
+        const maxDevices = Math.max(...locations.map(l => l.total));
+        const minRadius = 12;
+        const maxRadius = 45;
+
+        locations.forEach((loc) => {
+          const ratio = loc.total / maxDevices;
+          const radius = minRadius + (maxRadius - minRadius) * Math.sqrt(ratio);
+
+          const activeRatio = loc.active / loc.total;
+          let fillColor: string;
+          let borderColor: string;
+          if (activeRatio >= 0.9) {
+            fillColor = 'rgba(76, 175, 80, 0.35)';
+            borderColor = '#4CAF50';
+          } else if (activeRatio >= 0.5) {
+            fillColor = 'rgba(255, 152, 0, 0.35)';
+            borderColor = '#FF9800';
+          } else {
+            fillColor = 'rgba(244, 67, 54, 0.35)';
+            borderColor = '#F44336';
           }
 
-          // Clear existing markers (circle markers)
-          mapInstance.current.eachLayer((layer: any) => {
-            if (layer instanceof L.CircleMarker) {
-              mapInstance.current.removeLayer(layer);
-            }
+          const circle = L.circleMarker([loc.latitude, loc.longitude], {
+            radius: radius,
+            color: borderColor,
+            weight: 2,
+            opacity: 0.9,
+            fillColor: fillColor,
+            fillOpacity: 1,
+          }).addTo(mapInstance.current);
+
+          const countLabel = L.divIcon({
+            className: 'device-count-label',
+            html: `<div style="
+              color: white;
+              font-weight: 700;
+              font-size: ${radius > 25 ? '14px' : '11px'};
+              font-family: ui-monospace, monospace;
+              text-align: center;
+              line-height: ${radius * 2}px;
+              width: ${radius * 2}px;
+              height: ${radius * 2}px;
+              pointer-events: none;
+            ">${loc.total}</div>`,
+            iconSize: [radius * 2, radius * 2],
+            iconAnchor: [radius, radius],
           });
 
-          // Add device markers
-          if (devices) {
-            devices.forEach((device: any) => {
-              if (device.latitude && device.longitude) {
-                const color = device.status === 'active' ? '#4CAF50' : 
-                             device.status === 'inactive' ? '#FF9800' : '#F44336';
-                
-                const marker = L.circleMarker([device.latitude, device.longitude], {
-                  color: color,
-                  fillColor: color,
-                  fillOpacity: 0.6,
-                  radius: 8
-                }).addTo(mapInstance.current);
+          L.marker([loc.latitude, loc.longitude], { icon: countLabel, interactive: false })
+            .addTo(mapInstance.current);
 
-                marker.bindPopup(`
-                  <div>
-                    <strong>${device.name}</strong><br>
-                    Location: ${device.location || 'Unknown'}<br>
-                    Status: ${device.status}<br>
-                    Type: ${device.deviceType || 'Unknown'}
-                  </div>
-                `);
-              }
-            });
-          }
-        } catch (error) {
-          console.error('Error initializing map:', error);
-        }
-      };
+          const typeBreakdown = Object.entries(loc.deviceTypes)
+            .map(([type, count]) => `<span style="color:#9ca3af">${type}:</span> ${count}`)
+            .join('<br>');
 
-      initMap();
-    }
+          circle.bindPopup(`
+            <div style="font-family: system-ui; min-width: 180px;">
+              <div style="font-weight:700; font-size:14px; margin-bottom:8px; color:#111827;">${loc.location}</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:8px;">
+                <div style="background:#f0fdf4; padding:4px 8px; border-radius:4px; text-align:center;">
+                  <div style="font-size:18px; font-weight:700; color:#16a34a;">${loc.active}</div>
+                  <div style="font-size:10px; color:#4ade80;">Active</div>
+                </div>
+                <div style="background:#fefce8; padding:4px 8px; border-radius:4px; text-align:center;">
+                  <div style="font-size:18px; font-weight:700; color:#ca8a04;">${loc.inactive + loc.offline}</div>
+                  <div style="font-size:10px; color:#facc15;">Down</div>
+                </div>
+              </div>
+              <div style="font-size:11px; border-top:1px solid #e5e7eb; padding-top:6px;">
+                <div style="font-weight:600; margin-bottom:4px; color:#374151;">Device Types</div>
+                ${typeBreakdown}
+              </div>
+            </div>
+          `, { className: 'device-popup' });
+        });
+
+        const bounds = L.latLngBounds(locations.map(l => [l.latitude, l.longitude] as [number, number]));
+        mapInstance.current.fitBounds(bounds.pad(0.3));
+
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    };
+
+    initMap();
 
     return () => {
       if (mapInstance.current) {
@@ -73,50 +138,62 @@ export function GeographicMap() {
         mapInstance.current = null;
       }
     };
-  }, [devices]);
+  }, [locations]);
+
+  const totalDevices = locations?.reduce((s, l) => s + l.total, 0) || 0;
+  const totalActive = locations?.reduce((s, l) => s + l.active, 0) || 0;
+  const totalLocations = locations?.length || 0;
 
   return (
     <Card className="bg-surface border-gray-700 mb-8">
       <div className="px-6 py-4 border-b border-gray-700">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-white">Geographic Network Heatmap</h3>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h3 className="text-lg font-medium text-white">Device Distribution Map</h3>
+            <p className="text-xs text-gray-400 mt-1">
+              Circle size proportional to device count at each location
+            </p>
+          </div>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-xs">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-success rounded-full mr-1"></div>
+            <div className="flex items-center space-x-3 text-xs">
+              <div className="flex items-center space-x-1.5 bg-gray-800 px-3 py-1.5 rounded-md">
+                <span className="text-gray-400">Locations</span>
+                <span className="text-white font-bold">{totalLocations}</span>
+              </div>
+              <div className="flex items-center space-x-1.5 bg-gray-800 px-3 py-1.5 rounded-md">
+                <span className="text-gray-400">Devices</span>
+                <span className="text-white font-bold">{totalDevices}</span>
+              </div>
+              <div className="flex items-center space-x-1.5 bg-gray-800 px-3 py-1.5 rounded-md">
                 <span className="text-gray-400">Active</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-warning rounded-full mr-1"></div>
-                <span className="text-gray-400">Inactive</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-error rounded-full mr-1"></div>
-                <span className="text-gray-400">Offline</span>
+                <span className="text-success font-bold">{totalActive}</span>
               </div>
             </div>
-            <Select defaultValue="status">
-              <SelectTrigger className="bg-gray-700 border-gray-600 text-white w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="status">Device Status</SelectItem>
-                <SelectItem value="download">Download Speed</SelectItem>
-                <SelectItem value="upload">Upload Speed</SelectItem>
-                <SelectItem value="ping">Ping Latency</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center space-x-2 text-xs">
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full mr-1 border-2 border-success bg-success/20"></div>
+                <span className="text-gray-400">All up</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full mr-1 border-2 border-warning bg-warning/20"></div>
+                <span className="text-gray-400">Partial</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full mr-1 border-2 border-error bg-error/20"></div>
+                <span className="text-gray-400">Majority down</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <CardContent className="p-0">
-        <div 
-          ref={mapRef} 
+        <div
+          ref={mapRef}
           className="h-96 bg-gray-800 rounded-b-lg relative"
-          style={{ minHeight: '384px' }}
+          style={{ minHeight: '420px' }}
         >
-          {!devices && (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-500 z-10">
               <div className="text-center">
                 <i className="fas fa-map text-4xl mb-4"></i>
                 <p className="text-lg font-medium">Loading Network Map</p>

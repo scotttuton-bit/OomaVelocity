@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
 import { Sidebar } from "@/components/sidebar";
@@ -13,10 +13,24 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { queryClient } from "@/lib/queryClient";
-import { RefreshCw, MapPin } from "lucide-react";
+import { RefreshCw, MapPin, Globe } from "lucide-react";
 
 type ViewType = 'dashboard' | 'analytics' | 'alerts' | 'devices' | 'maps' | 'export';
 export type Duration = '1h' | '6h' | '24h' | '7d' | '30d' | '90d';
+
+const REGION_MAP: Record<string, string> = {
+  'San Francisco, CA': 'West',
+  'Los Angeles, CA': 'West',
+  'Seattle, WA': 'West',
+  'Denver, CO': 'West',
+  'Chicago, IL': 'Central',
+  'Austin, TX': 'Central',
+  'New York, NY': 'Northeast',
+  'Atlanta, GA': 'Southeast',
+  'Miami, FL': 'Southeast',
+};
+
+const REGION_ORDER = ['West', 'Central', 'Northeast', 'Southeast'];
 
 export function durationToMs(duration: Duration): number {
   switch (duration) {
@@ -43,7 +57,8 @@ export function durationToLabel(duration: Duration): string {
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [duration, setDuration] = useState<Duration>('1h');
-  const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const [selectedRegion, setSelectedRegion] = useState<string>('all');
+  const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   useWebSocket();
 
@@ -72,10 +87,72 @@ export default function Dashboard() {
     staleTime: 10000,
   });
 
+  const availableRegions = useMemo(() => {
+    if (!availableLocations) return [];
+    const regions = new Set<string>();
+    availableLocations.forEach(loc => {
+      const region = REGION_MAP[loc];
+      if (region) regions.add(region);
+    });
+    return REGION_ORDER.filter(r => regions.has(r));
+  }, [availableLocations]);
+
+  const allRegions = useMemo(() => {
+    if (!allMetricLocations) return [];
+    const regions = new Set<string>();
+    allMetricLocations.forEach(loc => {
+      const region = REGION_MAP[loc];
+      if (region) regions.add(region);
+    });
+    return REGION_ORDER.filter(r => regions.has(r));
+  }, [allMetricLocations]);
+
+  const filteredCities = useMemo(() => {
+    if (!allMetricLocations) return [];
+    if (selectedRegion === 'all') return allMetricLocations;
+    return allMetricLocations.filter(loc => REGION_MAP[loc] === selectedRegion);
+  }, [allMetricLocations, selectedRegion]);
+
+  const locationFilter = useMemo(() => {
+    if (selectedLocation !== 'all') return selectedLocation;
+    if (selectedRegion !== 'all') return `region:${selectedRegion}`;
+    return '';
+  }, [selectedLocation, selectedRegion]);
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await queryClient.invalidateQueries();
     setTimeout(() => setIsRefreshing(false), 600);
+  }, []);
+
+  const handleDurationChange = useCallback((v: string) => {
+    setDuration(v as Duration);
+    const now = Date.now();
+    const from = new Date(now - durationToMs(v as Duration)).toISOString();
+    const to = new Date(now).toISOString();
+    fetch(`/api/metrics/locations?from=${from}&to=${to}`)
+      .then(r => r.json())
+      .then((locs: string[]) => {
+        if (selectedLocation !== 'all' && !locs.includes(selectedLocation)) {
+          setSelectedLocation('all');
+        }
+        if (selectedRegion !== 'all') {
+          const regionHasData = locs.some(l => REGION_MAP[l] === selectedRegion);
+          if (!regionHasData) {
+            setSelectedRegion('all');
+            setSelectedLocation('all');
+          }
+        }
+      });
+  }, [selectedLocation, selectedRegion]);
+
+  const handleRegionChange = useCallback((v: string) => {
+    setSelectedRegion(v);
+    setSelectedLocation('all');
+  }, []);
+
+  const handleLocationChange = useCallback((v: string) => {
+    setSelectedLocation(v);
   }, []);
 
   const renderActiveView = () => {
@@ -83,8 +160,8 @@ export default function Dashboard() {
       case 'dashboard':
         return (
           <>
-            <RealTimeMetrics duration={duration} location={selectedLocation} />
-            <ChartsSection duration={duration} location={selectedLocation} />
+            <RealTimeMetrics duration={duration} location={locationFilter} />
+            <ChartsSection duration={duration} location={locationFilter} />
             <GeographicMap />
           </>
         );
@@ -101,8 +178,8 @@ export default function Dashboard() {
       default:
         return (
           <>
-            <RealTimeMetrics duration={duration} location={selectedLocation} />
-            <ChartsSection duration={duration} location={selectedLocation} />
+            <RealTimeMetrics duration={duration} location={locationFilter} />
+            <ChartsSection duration={duration} location={locationFilter} />
           </>
         );
     }
@@ -149,21 +226,9 @@ export default function Dashboard() {
                       <h1 className="text-3xl font-bold text-white">{getViewTitle()}</h1>
                       <p className="mt-2 text-sm text-gray-400">{getViewDescription()}</p>
                     </div>
-                    <div className="mt-4 sm:mt-0 sm:ml-4 flex space-x-3">
-                      <Select value={duration} onValueChange={(v) => {
-                        setDuration(v as Duration);
-                        if (selectedLocation && selectedLocation !== 'all') {
-                          const now = Date.now();
-                          const from = new Date(now - durationToMs(v as Duration)).toISOString();
-                          const to = new Date(now).toISOString();
-                          fetch(`/api/metrics/locations?from=${from}&to=${to}`)
-                            .then(r => r.json())
-                            .then((locs: string[]) => {
-                              if (!locs.includes(selectedLocation)) setSelectedLocation('all');
-                            });
-                        }
-                      }}>
-                        <SelectTrigger className="bg-surface border-gray-600 text-white w-40">
+                    <div className="mt-4 sm:mt-0 sm:ml-4 flex space-x-2">
+                      <Select value={duration} onValueChange={handleDurationChange}>
+                        <SelectTrigger className="bg-surface border-gray-600 text-white w-36">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -175,14 +240,36 @@ export default function Dashboard() {
                           <SelectItem value="90d">Last 90 Days</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Select value={selectedLocation || 'all'} onValueChange={setSelectedLocation}>
-                        <SelectTrigger className="bg-surface border-gray-600 text-white w-48">
-                          <MapPin className="h-4 w-4 mr-1 text-purple-400 shrink-0" />
-                          <SelectValue placeholder="All Locations" />
+                      <Select value={selectedRegion} onValueChange={handleRegionChange}>
+                        <SelectTrigger className="bg-surface border-gray-600 text-white w-40">
+                          <Globe className="h-4 w-4 mr-1 text-purple-400 shrink-0" />
+                          <SelectValue placeholder="All Regions" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Locations</SelectItem>
-                          {allMetricLocations?.map((loc) => {
+                          <SelectItem value="all">All Regions</SelectItem>
+                          {allRegions.map((region) => {
+                            const hasData = availableRegions.includes(region);
+                            return (
+                              <SelectItem
+                                key={region}
+                                value={region}
+                                disabled={!hasData}
+                                className={!hasData ? 'opacity-40' : ''}
+                              >
+                                {region}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <Select value={selectedLocation} onValueChange={handleLocationChange}>
+                        <SelectTrigger className="bg-surface border-gray-600 text-white w-48">
+                          <MapPin className="h-4 w-4 mr-1 text-purple-400 shrink-0" />
+                          <SelectValue placeholder="All Cities" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Cities</SelectItem>
+                          {filteredCities.map((loc) => {
                             const hasData = availableLocations?.includes(loc);
                             return (
                               <SelectItem

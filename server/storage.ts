@@ -13,14 +13,14 @@ import {
   type InsertExportRequest,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, gte, lte, and, sql, asc } from "drizzle-orm";
+import { eq, desc, gte, lte, and, sql, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Network Metrics
   createNetworkMetric(metric: InsertNetworkMetric): Promise<NetworkMetric>;
   getNetworkMetrics(limit?: number, deviceId?: string): Promise<NetworkMetric[]>;
-  getLatestMetrics(deviceId?: string, location?: string): Promise<NetworkMetric[]>;
-  getMetricsInRange(from: Date, to: Date, deviceId?: string, location?: string): Promise<NetworkMetric[]>;
+  getLatestMetrics(deviceId?: string, location?: string, locations?: string[]): Promise<NetworkMetric[]>;
+  getMetricsInRange(from: Date, to: Date, deviceId?: string, location?: string, locations?: string[]): Promise<NetworkMetric[]>;
   
   // Devices
   createDevice(device: InsertDevice): Promise<Device>;
@@ -73,7 +73,7 @@ export class DatabaseStorage implements IStorage {
     return query;
   }
 
-  async getLatestMetrics(deviceId?: string, location?: string): Promise<NetworkMetric[]> {
+  async getLatestMetrics(deviceId?: string, location?: string, locations?: string[]): Promise<NetworkMetric[]> {
     if (deviceId) {
       const [latest] = await db
         .select()
@@ -84,41 +84,47 @@ export class DatabaseStorage implements IStorage {
       return latest ? [latest] : [];
     }
 
-    if (location) {
-      const latestMetrics = await db
+    const locFilter = locations && locations.length > 0
+      ? inArray(networkMetrics.location, locations)
+      : location
+        ? eq(networkMetrics.location, location)
+        : undefined;
+
+    if (locFilter) {
+      return db
         .select()
         .from(networkMetrics)
         .where(and(
-          eq(networkMetrics.location, location),
+          locFilter,
           sql`(${networkMetrics.deviceId}, ${networkMetrics.timestampIso}) IN (
-            SELECT ${networkMetrics.deviceId}, MAX(${networkMetrics.timestampIso})
-            FROM ${networkMetrics}
-            WHERE ${networkMetrics.location} = ${location}
-            GROUP BY ${networkMetrics.deviceId}
+            SELECT device_id, MAX(timestamp_iso)
+            FROM network_metrics
+            GROUP BY device_id
           )`
         ));
-      return latestMetrics;
     }
 
-    const latestMetrics = await db
+    return db
       .select()
       .from(networkMetrics)
       .where(sql`(${networkMetrics.deviceId}, ${networkMetrics.timestampIso}) IN (
-        SELECT ${networkMetrics.deviceId}, MAX(${networkMetrics.timestampIso})
-        FROM ${networkMetrics}
-        GROUP BY ${networkMetrics.deviceId}
+        SELECT device_id, MAX(timestamp_iso)
+        FROM network_metrics
+        GROUP BY device_id
       )`);
-    
-    return latestMetrics;
   }
 
-  async getMetricsInRange(from: Date, to: Date, deviceId?: string, location?: string): Promise<NetworkMetric[]> {
-    const conditions = [
+  async getMetricsInRange(from: Date, to: Date, deviceId?: string, location?: string, locations?: string[]): Promise<NetworkMetric[]> {
+    const conditions: any[] = [
       gte(networkMetrics.timestampIso, from),
       lte(networkMetrics.timestampIso, to),
     ];
     if (deviceId) conditions.push(eq(networkMetrics.deviceId, deviceId));
-    if (location) conditions.push(eq(networkMetrics.location, location));
+    if (locations && locations.length > 0) {
+      conditions.push(inArray(networkMetrics.location, locations));
+    } else if (location) {
+      conditions.push(eq(networkMetrics.location, location));
+    }
 
     return db
       .select()

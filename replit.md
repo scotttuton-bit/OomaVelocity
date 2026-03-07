@@ -53,12 +53,31 @@ The current architecture does not implement explicit authentication mechanisms, 
 
 ### Dashboard Duration & Time Range
 
-The dashboard supports configurable time-range viewing via a duration dropdown (1h, 6h, 24h, 7d). Duration state is managed in `dashboard.tsx` and passed as props to `RealTimeMetrics` and `ChartsSection` components. Data is fetched using `/api/metrics?from=ISO&to=ISO` query parameters. Charts use intelligent downsampling to display appropriate data density for each time range. The Refresh button invalidates all TanStack Query caches.
+The dashboard supports configurable time-range viewing via a duration dropdown (1h, 6h, 24h, 7d, 30d, 90d). Duration state is managed in `dashboard.tsx` and passed as props to `RealTimeMetrics` and `ChartsSection` components. Data is fetched using `/api/metrics?from=ISO&to=ISO` query parameters. Charts use intelligent downsampling to display appropriate data density for each time range. The Refresh button invalidates all TanStack Query caches.
 
-**Query Key Convention**: All TanStack Query keys must use complete URL strings (e.g., `["/api/metrics?from=X&to=Y"]`), never objects as array segments, because the default query function joins segments with `/`.
+**Metric Cards**: The headline number shows the **period average** for the selected duration; the "Current" sub-label shows the live fleet-wide average (averaged across all latest per-device readings). Peak/Low sub-numbers show the extremes for the period.
+
+### Filtering: Duration → Region → City
+
+Three cascading filter dropdowns control data scope (left to right):
+1. **Duration** (1h–90d): controls the time window
+2. **Region** (All Regions, West, Central, Northeast, Southeast): geographic grouping
+3. **City** (individual cities): specific location
+
+Region mapping (`REGION_MAP` in `dashboard.tsx`, `REGION_CITIES` in `server/routes.ts`):
+- **West**: San Francisco, Los Angeles, Seattle, Denver
+- **Central**: Chicago, Austin
+- **Northeast**: New York
+- **Southeast**: Atlanta, Miami
+
+When a region is selected, it sends `location=region:West` to the API. The backend `resolveLocationFilter()` in `routes.ts` expands this to an array of cities and uses `inArray()` in the SQL query. The city dropdown filters to only show cities within the selected region, and both region and city items are disabled (grayed out) if they have no metric data in the selected duration.
+
+The `/api/metrics/locations` endpoint returns distinct locations with data in a given time range, used by the frontend to determine which regions/cities to enable.
+
+**Query Key Convention**: TanStack Query keys use array segments like `['/api/metrics', duration, location]` — never objects as array segments.
 
 ### Seed Data
 
-The `seed-data.ts` script generates 7 days of realistic network performance data at 5-minute intervals for 2 active devices (~4000 data points). Data includes time-of-day patterns (peak hours, evening, night), realistic variance, occasional outage events, and rolling averages.
+The `seed-data.ts` script generates 90 days of realistic network performance data for 9 devices across 9 US cities (~50,000 data points). Data uses variable intervals: 5min for last 7d, 15min for 7-30d, hourly for 30-90d. Includes time-of-day patterns, realistic variance, occasional outage events, and rolling averages.
 
 The architecture follows modern full-stack patterns with clear separation between frontend presentation, backend API logic, and data persistence layers. The system is designed for real-time monitoring with efficient data flow and responsive user interfaces.

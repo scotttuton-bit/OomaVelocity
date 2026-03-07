@@ -92,40 +92,18 @@ async function seedData() {
     return Math.max(0, base + modifier + noise + slowTrend);
   }
 
-  const sfDevice = createdDevices.find(d => d.name === 'SF-HQ-RTR-01')!;
-  const nycDevice = createdDevices.find(d => d.name === 'NYC-OFF-RTR-01')!;
-  const atxDevice = createdDevices.find(d => d.name === 'ATX-OFF-PI-01')!;
-  const chiDevice = createdDevices.find(d => d.name === 'CHI-OFF-RTR-01')!;
+  const findDevice = (name: string) => createdDevices.find(d => d.name === name)!;
 
   const deviceProfiles = [
-    {
-      id: sfDevice.id,
-      location: 'San Francisco, CA',
-      baseDown: 185, varianceDown: 40,
-      baseUp: 32, varianceUp: 8,
-      basePing: 12, variancePing: 8,
-    },
-    {
-      id: nycDevice.id,
-      location: 'New York, NY',
-      baseDown: 150, varianceDown: 35,
-      baseUp: 28, varianceUp: 7,
-      basePing: 18, variancePing: 10,
-    },
-    {
-      id: atxDevice.id,
-      location: 'Austin, TX',
-      baseDown: 95, varianceDown: 25,
-      baseUp: 15, varianceUp: 6,
-      basePing: 22, variancePing: 12,
-    },
-    {
-      id: chiDevice.id,
-      location: 'Chicago, IL',
-      baseDown: 120, varianceDown: 30,
-      baseUp: 20, varianceUp: 5,
-      basePing: 15, variancePing: 9,
-    },
+    { id: findDevice('SF-HQ-RTR-01').id, location: 'San Francisco, CA', baseDown: 185, varianceDown: 40, baseUp: 32, varianceUp: 8, basePing: 12, variancePing: 8 },
+    { id: findDevice('NYC-OFF-RTR-01').id, location: 'New York, NY', baseDown: 150, varianceDown: 35, baseUp: 28, varianceUp: 7, basePing: 18, variancePing: 10 },
+    { id: findDevice('ATX-OFF-PI-01').id, location: 'Austin, TX', baseDown: 95, varianceDown: 25, baseUp: 15, varianceUp: 6, basePing: 22, variancePing: 12 },
+    { id: findDevice('CHI-OFF-RTR-01').id, location: 'Chicago, IL', baseDown: 120, varianceDown: 30, baseUp: 20, varianceUp: 5, basePing: 15, variancePing: 9 },
+    { id: findDevice('SEA-OFF-RTR-01').id, location: 'Seattle, WA', baseDown: 170, varianceDown: 35, baseUp: 30, varianceUp: 7, basePing: 14, variancePing: 8 },
+    { id: findDevice('DEN-OFF-AGT-01').id, location: 'Denver, CO', baseDown: 110, varianceDown: 28, baseUp: 18, varianceUp: 5, basePing: 20, variancePing: 10 },
+    { id: findDevice('MIA-OFF-RTR-01').id, location: 'Miami, FL', baseDown: 130, varianceDown: 32, baseUp: 22, varianceUp: 6, basePing: 25, variancePing: 12 },
+    { id: findDevice('LAX-DC-RTR-01').id, location: 'Los Angeles, CA', baseDown: 200, varianceDown: 45, baseUp: 35, varianceUp: 9, basePing: 10, variancePing: 6 },
+    { id: findDevice('ATL-OFF-RTR-01').id, location: 'Atlanta, GA', baseDown: 140, varianceDown: 30, baseUp: 24, varianceUp: 6, basePing: 19, variancePing: 10 },
   ];
 
   const metricsData: any[] = [];
@@ -199,12 +177,16 @@ async function seedData() {
   for (let i = 0; i < metricsData.length; i += BATCH_SIZE) {
     const batch = metricsData.slice(i, i + BATCH_SIZE);
     await db.insert(networkMetrics).values(batch);
-    console.log(`Inserted batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(metricsData.length / BATCH_SIZE)}`);
+    if ((i / BATCH_SIZE) % 20 === 0) {
+      console.log(`Inserted batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(metricsData.length / BATCH_SIZE)}`);
+    }
   }
   console.log('Created network metrics:', totalPoints);
 
   const nycInactive = createdDevices.find(d => d.name === 'NYC-DC-AGT-01')!;
   const denOffline = createdDevices.find(d => d.name === 'DEN-DC-AGT-01')!;
+  const sfDevice = findDevice('SF-HQ-RTR-01');
+  const chiDevice = findDevice('CHI-OFF-RTR-01');
 
   const alertData = [
     {

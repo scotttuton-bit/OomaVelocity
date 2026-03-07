@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { db } from "./db";
 import { networkMetrics, insertNetworkMetricSchema, insertDeviceSchema, insertAlertSchema, insertExportRequestSchema } from "@shared/schema";
-import { and, gte, lte, sql } from "drizzle-orm";
+import { and, gte, lte, sql, inArray, eq } from "drizzle-orm";
 import { z } from "zod";
 import multer from "multer";
 import csv from "csv-parser";
@@ -12,6 +12,23 @@ import * as fs from "fs";
 import { Readable } from "stream";
 
 const upload = multer({ dest: 'uploads/' });
+
+const REGION_CITIES: Record<string, string[]> = {
+  'West': ['San Francisco, CA', 'Los Angeles, CA', 'Seattle, WA', 'Denver, CO'],
+  'Central': ['Chicago, IL', 'Austin, TX'],
+  'Northeast': ['New York, NY'],
+  'Southeast': ['Atlanta, GA', 'Miami, FL'],
+};
+
+function resolveLocationFilter(location?: string): { location?: string; locations?: string[] } {
+  if (!location) return {};
+  if (location.startsWith('region:')) {
+    const region = location.slice(7);
+    const cities = REGION_CITIES[region];
+    return cities ? { locations: cities } : {};
+  }
+  return { location };
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -55,7 +72,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Network metrics endpoints
   app.get('/api/metrics', async (req, res) => {
     try {
-      const { limit, deviceId, from, to, location } = req.query;
+      const { limit, deviceId, from, to, location: rawLoc } = req.query;
+      const { location, locations } = resolveLocationFilter(rawLoc as string);
       let metrics;
 
       if (from && to) {
@@ -63,7 +81,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           new Date(from as string),
           new Date(to as string),
           deviceId as string,
-          location as string
+          location,
+          locations
         );
       } else {
         metrics = await storage.getNetworkMetrics(
@@ -104,8 +123,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/metrics/latest', async (req, res) => {
     try {
-      const { deviceId, location } = req.query;
-      const metrics = await storage.getLatestMetrics(deviceId as string, location as string);
+      const { deviceId, location: rawLoc } = req.query;
+      const { location, locations } = resolveLocationFilter(rawLoc as string);
+      const metrics = await storage.getLatestMetrics(deviceId as string, location, locations);
       res.json(metrics);
     } catch (error) {
       console.error('Error fetching latest metrics:', error);

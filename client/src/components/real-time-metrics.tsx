@@ -43,6 +43,10 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
         uploadChange: 0,
         pingChange: 0,
         qualityChange: 0,
+        peakDownload: 0,
+        lowDownload: 0,
+        peakUpload: 0,
+        lowUpload: 0,
       };
     }
 
@@ -51,11 +55,19 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
     let avgDownload = metric.avgDownloadMbps || 0;
     let avgUpload = metric.avgUploadMbps || 0;
     let avgPing = metric.avgPingMs || 0;
+    let peakDownload = metric.downloadMbps || 0;
+    let lowDownload = metric.downloadMbps || 0;
+    let peakUpload = metric.uploadMbps || 0;
+    let lowUpload = metric.uploadMbps || 0;
 
     if (rangeMetrics && rangeMetrics.length > 0) {
       avgDownload = rangeMetrics.reduce((s, m) => s + (m.downloadMbps || 0), 0) / rangeMetrics.length;
       avgUpload = rangeMetrics.reduce((s, m) => s + (m.uploadMbps || 0), 0) / rangeMetrics.length;
       avgPing = rangeMetrics.reduce((s, m) => s + (m.pingMs || 0), 0) / rangeMetrics.length;
+      peakDownload = Math.max(...rangeMetrics.map(m => m.downloadMbps || 0));
+      lowDownload = Math.min(...rangeMetrics.map(m => m.downloadMbps || 0));
+      peakUpload = Math.max(...rangeMetrics.map(m => m.uploadMbps || 0));
+      lowUpload = Math.min(...rangeMetrics.map(m => m.uploadMbps || 0));
     }
 
     const qualityScore = Math.min(100, Math.max(0,
@@ -88,6 +100,10 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
         ? ((metric.pingMs || 0) - avgPing) / avgPing * 100
         : 0,
       qualityChange: Math.round((qualityScore - avgQuality) * 10) / 10,
+      peakDownload: Math.round(peakDownload * 10) / 10,
+      lowDownload: Math.round(lowDownload * 10) / 10,
+      peakUpload: Math.round(peakUpload * 10) / 10,
+      lowUpload: Math.round(lowUpload * 10) / 10,
     };
   };
 
@@ -110,7 +126,15 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
               <i className="fas fa-download text-success text-xl"></i>
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-3 flex items-center justify-between text-xs">
+            <div className="flex items-center space-x-3">
+              <span className="text-purple-300/50">Peak</span>
+              <span className="font-mono text-emerald-300">{metrics.peakDownload}</span>
+              <span className="text-purple-300/50">Low</span>
+              <span className="font-mono text-rose-400">{metrics.lowDownload}</span>
+            </div>
+          </div>
+          <div className="mt-2">
             <div className="flex items-center text-sm">
               <i className={`fas ${metrics.downloadChange >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-error'} mr-1`}></i>
               <span className={metrics.downloadChange >= 0 ? 'text-success' : 'text-error'}>
@@ -136,7 +160,15 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
               <i className="fas fa-upload text-purple-400 text-xl"></i>
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-3 flex items-center justify-between text-xs">
+            <div className="flex items-center space-x-3">
+              <span className="text-purple-300/50">Peak</span>
+              <span className="font-mono text-emerald-300">{metrics.peakUpload}</span>
+              <span className="text-purple-300/50">Low</span>
+              <span className="font-mono text-rose-400">{metrics.lowUpload}</span>
+            </div>
+          </div>
+          <div className="mt-2">
             <div className="flex items-center text-sm">
               <i className={`fas ${metrics.uploadChange >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-error'} mr-1`}></i>
               <span className={metrics.uploadChange >= 0 ? 'text-success' : 'text-error'}>

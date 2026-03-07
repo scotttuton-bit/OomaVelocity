@@ -61,8 +61,13 @@ async function seedData() {
   console.log('Created devices:', createdDevices.length);
 
   const now = Date.now();
-  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-  const INTERVAL_MS = 5 * 60 * 1000;
+  const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+
+  function getInterval(ageMs: number): number {
+    if (ageMs < 7 * 24 * 60 * 60 * 1000) return 5 * 60 * 1000;
+    if (ageMs < 30 * 24 * 60 * 60 * 1000) return 15 * 60 * 1000;
+    return 60 * 60 * 1000;
+  }
 
   function generateRealisticValue(
     base: number,
@@ -132,11 +137,11 @@ async function seedData() {
     const rollingPing: number[] = [];
     const ROLLING_WINDOW = 12;
 
-    for (let t = now - SEVEN_DAYS_MS; t <= now; t += INTERVAL_MS) {
+    for (let t = now - NINETY_DAYS_MS; t <= now; t += getInterval(now - t)) {
       const date = new Date(t);
       const hour = date.getHours();
       const day = date.getDay();
-      const offset = (t - (now - SEVEN_DAYS_MS)) / INTERVAL_MS;
+      const offset = (t - (now - NINETY_DAYS_MS)) / (5 * 60 * 1000);
 
       const hasOutage = Math.random() < 0.003;
 

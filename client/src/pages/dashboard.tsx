@@ -15,7 +15,7 @@ import { queryClient } from "@/lib/queryClient";
 import { RefreshCw } from "lucide-react";
 
 type ViewType = 'dashboard' | 'analytics' | 'alerts' | 'devices' | 'maps' | 'export';
-export type Duration = '1h' | '6h' | '24h' | '7d';
+export type Duration = '1h' | '6h' | '24h' | '7d' | '30d' | '90d';
 
 export function durationToMs(duration: Duration): number {
   switch (duration) {
@@ -23,6 +23,8 @@ export function durationToMs(duration: Duration): number {
     case '6h': return 6 * 60 * 60 * 1000;
     case '24h': return 24 * 60 * 60 * 1000;
     case '7d': return 7 * 24 * 60 * 60 * 1000;
+    case '30d': return 30 * 24 * 60 * 60 * 1000;
+    case '90d': return 90 * 24 * 60 * 60 * 1000;
   }
 }
 
@@ -32,6 +34,8 @@ export function durationToLabel(duration: Duration): string {
     case '6h': return 'Last 6 Hours';
     case '24h': return 'Last 24 Hours';
     case '7d': return 'Last 7 Days';
+    case '30d': return 'Last 30 Days';
+    case '90d': return 'Last 90 Days';
   }
 }
 
@@ -128,6 +132,8 @@ export default function Dashboard() {
                           <SelectItem value="6h">Last 6 Hours</SelectItem>
                           <SelectItem value="24h">Last 24 Hours</SelectItem>
                           <SelectItem value="7d">Last 7 Days</SelectItem>
+                          <SelectItem value="30d">Last 30 Days</SelectItem>
+                          <SelectItem value="90d">Last 90 Days</SelectItem>
                         </SelectContent>
                       </Select>
                       <Button

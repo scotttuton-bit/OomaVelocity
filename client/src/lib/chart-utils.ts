@@ -39,6 +39,10 @@ function formatLabel(ts: string | Date, duration: Duration): string {
     case '7d':
       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
         ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit' });
+    case '30d':
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    case '90d':
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 }
 
@@ -48,6 +52,8 @@ function getMaxPoints(duration: Duration): number {
     case '6h': return 24;
     case '24h': return 48;
     case '7d': return 56;
+    case '30d': return 60;
+    case '90d': return 90;
   }
 }
 

@@ -40,13 +40,6 @@ export function durationToLabel(duration: Duration): string {
   }
 }
 
-interface LocationData {
-  location: string;
-  latitude: number;
-  longitude: number;
-  devices: { id: string; name: string; status: string }[];
-}
-
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [duration, setDuration] = useState<Duration>('1h');
@@ -54,8 +47,16 @@ export default function Dashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   useWebSocket();
 
-  const { data: locations } = useQuery<LocationData[]>({
-    queryKey: ['/api/devices/locations'],
+  const { data: allMetricLocations } = useQuery<string[]>({
+    queryKey: ['/api/metrics/locations', 'all-time'],
+    queryFn: async () => {
+      const from = new Date(0).toISOString();
+      const to = new Date().toISOString();
+      const res = await fetch(`/api/metrics/locations?from=${from}&to=${to}`);
+      if (!res.ok) throw new Error('Failed to fetch all locations');
+      return res.json();
+    },
+    staleTime: 60000,
   });
 
   const { data: availableLocations } = useQuery<string[]>({
@@ -181,16 +182,16 @@ export default function Dashboard() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Locations</SelectItem>
-                          {locations?.map((loc) => {
-                            const hasData = availableLocations?.includes(loc.location);
+                          {allMetricLocations?.map((loc) => {
+                            const hasData = availableLocations?.includes(loc);
                             return (
                               <SelectItem
-                                key={loc.location}
-                                value={loc.location}
+                                key={loc}
+                                value={loc}
                                 disabled={!hasData}
                                 className={!hasData ? 'opacity-40' : ''}
                               >
-                                {loc.location}
+                                {loc}
                               </SelectItem>
                             );
                           })}

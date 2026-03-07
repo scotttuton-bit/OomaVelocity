@@ -33,73 +33,55 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
   });
 
   const getMainMetric = () => {
-    if (!latestMetrics || latestMetrics.length === 0) {
-      return {
-        downloadSpeed: 0,
-        uploadSpeed: 0,
-        pingLatency: 0,
-        qualityScore: 0,
-        downloadChange: 0,
-        uploadChange: 0,
-        pingChange: 0,
-        qualityChange: 0,
-        peakDownload: 0,
-        lowDownload: 0,
-        peakUpload: 0,
-        lowUpload: 0,
-      };
-    }
+    const empty = {
+      avgDownload: 0, avgUpload: 0, avgPing: 0, avgQuality: 0,
+      currentDownload: 0, currentUpload: 0, currentPing: 0, currentQuality: 0,
+      downloadChange: 0, uploadChange: 0, pingChange: 0, qualityChange: 0,
+      peakDownload: 0, lowDownload: 0, peakUpload: 0, lowUpload: 0,
+    };
 
-    const metric = latestMetrics[0];
-
-    let avgDownload = metric.avgDownloadMbps || 0;
-    let avgUpload = metric.avgUploadMbps || 0;
-    let avgPing = metric.avgPingMs || 0;
-    let peakDownload = metric.downloadMbps || 0;
-    let lowDownload = metric.downloadMbps || 0;
-    let peakUpload = metric.uploadMbps || 0;
-    let lowUpload = metric.uploadMbps || 0;
-
-    if (rangeMetrics && rangeMetrics.length > 0) {
-      avgDownload = rangeMetrics.reduce((s, m) => s + (m.downloadMbps || 0), 0) / rangeMetrics.length;
-      avgUpload = rangeMetrics.reduce((s, m) => s + (m.uploadMbps || 0), 0) / rangeMetrics.length;
-      avgPing = rangeMetrics.reduce((s, m) => s + (m.pingMs || 0), 0) / rangeMetrics.length;
-      peakDownload = Math.max(...rangeMetrics.map(m => m.downloadMbps || 0));
-      lowDownload = Math.min(...rangeMetrics.map(m => m.downloadMbps || 0));
-      peakUpload = Math.max(...rangeMetrics.map(m => m.uploadMbps || 0));
-      lowUpload = Math.min(...rangeMetrics.map(m => m.uploadMbps || 0));
-    }
-
-    const qualityScore = Math.min(100, Math.max(0,
-      ((metric.downloadMbps || 0) > 100 ? 100 : (metric.downloadMbps || 0)) * 0.6 +
-      ((metric.pingMs || 0) < 50 ? 50 - (metric.pingMs || 0) : 0) * 0.4
+    const latest = latestMetrics?.[0];
+    const currentDown = latest?.downloadMbps || 0;
+    const currentUp = latest?.uploadMbps || 0;
+    const currentPing = latest?.pingMs || 0;
+    const currentQuality = Math.min(100, Math.max(0,
+      (currentDown > 100 ? 100 : currentDown) * 0.6 +
+      (currentPing < 50 ? 50 - currentPing : 0) * 0.4
     ));
 
-    const avgQuality = rangeMetrics && rangeMetrics.length > 0
-      ? rangeMetrics.reduce((s, m) => {
-          const q = Math.min(100, Math.max(0,
-            ((m.downloadMbps || 0) > 100 ? 100 : (m.downloadMbps || 0)) * 0.6 +
-            ((m.pingMs || 0) < 50 ? 50 - (m.pingMs || 0) : 0) * 0.4
-          ));
-          return s + q;
-        }, 0) / rangeMetrics.length
-      : qualityScore;
+    if (!rangeMetrics || rangeMetrics.length === 0) {
+      return { ...empty, avgDownload: currentDown, avgUpload: currentUp, avgPing: currentPing, avgQuality: Math.round(currentQuality * 10) / 10, currentDownload: currentDown, currentUpload: currentUp, currentPing: currentPing, currentQuality: Math.round(currentQuality * 10) / 10 };
+    }
+
+    const avgDownload = rangeMetrics.reduce((s, m) => s + (m.downloadMbps || 0), 0) / rangeMetrics.length;
+    const avgUpload = rangeMetrics.reduce((s, m) => s + (m.uploadMbps || 0), 0) / rangeMetrics.length;
+    const avgPing = rangeMetrics.reduce((s, m) => s + (m.pingMs || 0), 0) / rangeMetrics.length;
+    const avgQuality = rangeMetrics.reduce((s, m) => {
+      const q = Math.min(100, Math.max(0,
+        ((m.downloadMbps || 0) > 100 ? 100 : (m.downloadMbps || 0)) * 0.6 +
+        ((m.pingMs || 0) < 50 ? 50 - (m.pingMs || 0) : 0) * 0.4
+      ));
+      return s + q;
+    }, 0) / rangeMetrics.length;
+
+    const peakDownload = Math.max(...rangeMetrics.map(m => m.downloadMbps || 0));
+    const lowDownload = Math.min(...rangeMetrics.map(m => m.downloadMbps || 0));
+    const peakUpload = Math.max(...rangeMetrics.map(m => m.uploadMbps || 0));
+    const lowUpload = Math.min(...rangeMetrics.map(m => m.uploadMbps || 0));
 
     return {
-      downloadSpeed: metric.downloadMbps || 0,
-      uploadSpeed: metric.uploadMbps || 0,
-      pingLatency: metric.pingMs || 0,
-      qualityScore: Math.round(qualityScore * 10) / 10,
-      downloadChange: avgDownload > 0
-        ? ((metric.downloadMbps || 0) - avgDownload) / avgDownload * 100
-        : 0,
-      uploadChange: avgUpload > 0
-        ? ((metric.uploadMbps || 0) - avgUpload) / avgUpload * 100
-        : 0,
-      pingChange: avgPing > 0
-        ? ((metric.pingMs || 0) - avgPing) / avgPing * 100
-        : 0,
-      qualityChange: Math.round((qualityScore - avgQuality) * 10) / 10,
+      avgDownload: Math.round(avgDownload * 10) / 10,
+      avgUpload: Math.round(avgUpload * 10) / 10,
+      avgPing: Math.round(avgPing * 10) / 10,
+      avgQuality: Math.round(avgQuality * 10) / 10,
+      currentDownload: Math.round(currentDown * 10) / 10,
+      currentUpload: Math.round(currentUp * 10) / 10,
+      currentPing: Math.round(currentPing * 10) / 10,
+      currentQuality: Math.round(currentQuality * 10) / 10,
+      downloadChange: avgDownload > 0 ? (currentDown - avgDownload) / avgDownload * 100 : 0,
+      uploadChange: avgUpload > 0 ? (currentUp - avgUpload) / avgUpload * 100 : 0,
+      pingChange: avgPing > 0 ? (currentPing - avgPing) / avgPing * 100 : 0,
+      qualityChange: Math.round((currentQuality - avgQuality) * 10) / 10,
       peakDownload: Math.round(peakDownload * 10) / 10,
       lowDownload: Math.round(lowDownload * 10) / 10,
       peakUpload: Math.round(peakUpload * 10) / 10,
@@ -107,7 +89,7 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
     };
   };
 
-  const metrics = getMainMetric();
+  const m = getMainMetric();
   const periodLabel = durationToLabel(duration);
 
   return (
@@ -116,9 +98,9 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-400">Download Speed</p>
+              <p className="text-sm font-medium text-gray-400">Avg Download</p>
               <p className="text-3xl font-bold text-success font-mono">
-                {metrics.downloadSpeed.toFixed(1)}
+                {m.avgDownload.toFixed(1)}
               </p>
               <p className="text-sm text-gray-400">Mbps</p>
             </div>
@@ -129,19 +111,19 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
           <div className="mt-3 flex items-center justify-between text-xs">
             <div className="flex items-center space-x-3">
               <span className="text-purple-300/50">Peak</span>
-              <span className="font-mono text-emerald-300">{metrics.peakDownload}</span>
+              <span className="font-mono text-emerald-300">{m.peakDownload}</span>
               <span className="text-purple-300/50">Low</span>
-              <span className="font-mono text-rose-400">{metrics.lowDownload}</span>
+              <span className="font-mono text-rose-400">{m.lowDownload}</span>
             </div>
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex items-center justify-between">
             <div className="flex items-center text-sm">
-              <i className={`fas ${metrics.downloadChange >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-error'} mr-1`}></i>
-              <span className={metrics.downloadChange >= 0 ? 'text-success' : 'text-error'}>
-                {Math.abs(metrics.downloadChange).toFixed(1)}%
+              <i className={`fas ${m.downloadChange >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-error'} mr-1`}></i>
+              <span className={m.downloadChange >= 0 ? 'text-success' : 'text-error'}>
+                {Math.abs(m.downloadChange).toFixed(1)}%
               </span>
-              <span className="text-gray-400 ml-1">vs {periodLabel.toLowerCase()}</span>
             </div>
+            <span className="text-xs text-purple-300/50">Current: <span className="font-mono text-white">{m.currentDownload}</span></span>
           </div>
         </CardContent>
       </Card>
@@ -150,9 +132,9 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-400">Upload Speed</p>
+              <p className="text-sm font-medium text-gray-400">Avg Upload</p>
               <p className="text-3xl font-bold text-purple-400 font-mono">
-                {metrics.uploadSpeed.toFixed(1)}
+                {m.avgUpload.toFixed(1)}
               </p>
               <p className="text-sm text-gray-400">Mbps</p>
             </div>
@@ -163,19 +145,19 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
           <div className="mt-3 flex items-center justify-between text-xs">
             <div className="flex items-center space-x-3">
               <span className="text-purple-300/50">Peak</span>
-              <span className="font-mono text-emerald-300">{metrics.peakUpload}</span>
+              <span className="font-mono text-emerald-300">{m.peakUpload}</span>
               <span className="text-purple-300/50">Low</span>
-              <span className="font-mono text-rose-400">{metrics.lowUpload}</span>
+              <span className="font-mono text-rose-400">{m.lowUpload}</span>
             </div>
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex items-center justify-between">
             <div className="flex items-center text-sm">
-              <i className={`fas ${metrics.uploadChange >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-error'} mr-1`}></i>
-              <span className={metrics.uploadChange >= 0 ? 'text-success' : 'text-error'}>
-                {Math.abs(metrics.uploadChange).toFixed(1)}%
+              <i className={`fas ${m.uploadChange >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-error'} mr-1`}></i>
+              <span className={m.uploadChange >= 0 ? 'text-success' : 'text-error'}>
+                {Math.abs(m.uploadChange).toFixed(1)}%
               </span>
-              <span className="text-gray-400 ml-1">vs {periodLabel.toLowerCase()}</span>
             </div>
+            <span className="text-xs text-purple-300/50">Current: <span className="font-mono text-white">{m.currentUpload}</span></span>
           </div>
         </CardContent>
       </Card>
@@ -184,9 +166,9 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-400">Ping Latency</p>
+              <p className="text-sm font-medium text-gray-400">Avg Ping</p>
               <p className="text-3xl font-bold text-info font-mono">
-                {metrics.pingLatency.toFixed(1)}
+                {m.avgPing.toFixed(1)}
               </p>
               <p className="text-sm text-gray-400">ms</p>
             </div>
@@ -194,14 +176,14 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
               <i className="fas fa-stopwatch text-info text-xl"></i>
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center text-sm">
-              <i className={`fas ${metrics.pingChange <= 0 ? 'fa-arrow-down text-success' : 'fa-arrow-up text-info'} mr-1`}></i>
-              <span className={metrics.pingChange <= 0 ? 'text-success' : 'text-info'}>
-                {Math.abs(metrics.pingChange).toFixed(1)}%
+              <i className={`fas ${m.pingChange <= 0 ? 'fa-arrow-down text-success' : 'fa-arrow-up text-info'} mr-1`}></i>
+              <span className={m.pingChange <= 0 ? 'text-success' : 'text-info'}>
+                {Math.abs(m.pingChange).toFixed(1)}%
               </span>
-              <span className="text-gray-400 ml-1">vs {periodLabel.toLowerCase()}</span>
             </div>
+            <span className="text-xs text-purple-300/50">Current: <span className="font-mono text-white">{m.currentPing}</span></span>
           </div>
         </CardContent>
       </Card>
@@ -210,9 +192,9 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-400">Quality Score</p>
+              <p className="text-sm font-medium text-gray-400">Avg Quality</p>
               <p className="text-3xl font-bold text-success font-mono">
-                {metrics.qualityScore.toFixed(1)}
+                {m.avgQuality.toFixed(1)}
               </p>
               <p className="text-sm text-gray-400">/ 100</p>
             </div>
@@ -220,14 +202,15 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
               <i className="fas fa-star text-success text-xl"></i>
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center text-sm">
-              <i className={`fas ${metrics.qualityChange >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-error'} mr-1`}></i>
-              <span className={metrics.qualityChange >= 0 ? 'text-success' : 'text-error'}>
-                {metrics.qualityChange >= 0 ? '+' : ''}{metrics.qualityChange.toFixed(1)}
+              <i className={`fas ${m.qualityChange >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-error'} mr-1`}></i>
+              <span className={m.qualityChange >= 0 ? 'text-success' : 'text-error'}>
+                {m.qualityChange >= 0 ? '+' : ''}{m.qualityChange.toFixed(1)}
               </span>
-              <span className="text-gray-400 ml-1">pts vs {periodLabel.toLowerCase()}</span>
+              <span className="text-gray-400 ml-1">pts</span>
             </div>
+            <span className="text-xs text-purple-300/50">Current: <span className="font-mono text-white">{m.currentQuality}</span></span>
           </div>
         </CardContent>
       </Card>

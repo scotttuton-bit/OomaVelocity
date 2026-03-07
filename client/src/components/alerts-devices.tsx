@@ -101,8 +101,8 @@ export function AlertsAndDevices() {
             )}
           </div>
         </CardContent>
-        <div className="px-6 py-3 bg-gray-800 rounded-b-lg">
-          <Button variant="link" className="text-sm text-primary hover:text-blue-400 font-medium p-0">
+        <div className="px-6 py-3 bg-purple-950/30 rounded-b-lg">
+          <Button variant="link" className="text-sm text-primary hover:text-violet-400 font-medium p-0">
             View all alerts →
           </Button>
         </div>
@@ -161,8 +161,8 @@ export function AlertsAndDevices() {
             )}
           </div>
         </CardContent>
-        <div className="px-6 py-3 bg-gray-800 rounded-b-lg">
-          <Button variant="link" className="text-sm text-primary hover:text-blue-400 font-medium p-0">
+        <div className="px-6 py-3 bg-purple-950/30 rounded-b-lg">
+          <Button variant="link" className="text-sm text-primary hover:text-violet-400 font-medium p-0">
             Manage devices →
           </Button>
         </div>

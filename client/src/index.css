@@ -4,71 +4,71 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0, 0%, 7%);
-  --foreground: hsl(0, 0%, 100%);
-  --card: hsl(0, 0%, 11.8%);
-  --card-foreground: hsl(0, 0%, 100%);
-  --popover: hsl(0, 0%, 7%);
-  --popover-foreground: hsl(0, 0%, 100%);
-  --primary: hsl(207, 90%, 54%);
+  --background: hsl(258, 25%, 5%);
+  --foreground: hsl(240, 20%, 95%);
+  --card: hsl(258, 20%, 10%);
+  --card-foreground: hsl(240, 20%, 95%);
+  --popover: hsl(258, 25%, 7%);
+  --popover-foreground: hsl(240, 20%, 95%);
+  --primary: hsl(265, 80%, 58%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(0, 0%, 26%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --muted: hsl(0, 0%, 14.9%);
-  --muted-foreground: hsl(0, 0%, 63.9%);
-  --accent: hsl(0, 0%, 14.9%);
-  --accent-foreground: hsl(0, 0%, 100%);
-  --destructive: hsl(4, 90%, 58%);
+  --secondary: hsl(258, 18%, 18%);
+  --secondary-foreground: hsl(240, 20%, 90%);
+  --muted: hsl(258, 15%, 14%);
+  --muted-foreground: hsl(250, 10%, 58%);
+  --accent: hsl(258, 20%, 16%);
+  --accent-foreground: hsl(240, 20%, 95%);
+  --destructive: hsl(340, 82%, 52%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(0, 0%, 27.5%);
-  --input: hsl(0, 0%, 11.8%);
-  --ring: hsl(207, 90%, 54%);
-  --chart-1: hsl(207, 90%, 54%);
-  --chart-2: hsl(142, 76%, 36%);
-  --chart-3: hsl(36, 100%, 50%);
-  --chart-4: hsl(142, 76%, 36%);
-  --chart-5: hsl(343, 75%, 51%);
-  --sidebar: hsl(0, 0%, 11.8%);
-  --sidebar-foreground: hsl(0, 0%, 100%);
-  --sidebar-primary: hsl(207, 90%, 54%);
+  --border: hsl(258, 14%, 22%);
+  --input: hsl(258, 20%, 12%);
+  --ring: hsl(265, 80%, 58%);
+  --chart-1: hsl(265, 80%, 58%);
+  --chart-2: hsl(220, 85%, 56%);
+  --chart-3: hsl(155, 72%, 44%);
+  --chart-4: hsl(185, 80%, 48%);
+  --chart-5: hsl(290, 65%, 55%);
+  --sidebar: hsl(258, 22%, 9%);
+  --sidebar-foreground: hsl(240, 20%, 90%);
+  --sidebar-primary: hsl(265, 80%, 58%);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(0, 0%, 14.9%);
-  --sidebar-accent-foreground: hsl(0, 0%, 100%);
-  --sidebar-border: hsl(0, 0%, 27.5%);
-  --sidebar-ring: hsl(207, 90%, 54%);
+  --sidebar-accent: hsl(258, 20%, 14%);
+  --sidebar-accent-foreground: hsl(240, 20%, 95%);
+  --sidebar-border: hsl(258, 14%, 22%);
+  --sidebar-ring: hsl(265, 80%, 58%);
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'JetBrains Mono', monospace;
   --radius: 0.5rem;
-  
-  /* Network status colors */
-  --success: hsl(142, 76%, 36%);
-  --warning: hsl(36, 100%, 50%);
-  --error: hsl(4, 90%, 58%);
-  --dark: hsl(0, 0%, 7%);
-  --surface: hsl(0, 0%, 11.8%);
+
+  --success: hsl(155, 72%, 44%);
+  --warning: hsl(45, 100%, 55%);
+  --error: hsl(340, 82%, 52%);
+  --info: hsl(220, 85%, 56%);
+  --dark: hsl(258, 25%, 5%);
+  --surface: hsl(258, 20%, 10%);
 }
 
 .dark {
-  --background: hsl(0, 0%, 7%);
-  --foreground: hsl(0, 0%, 100%);
-  --card: hsl(0, 0%, 11.8%);
-  --card-foreground: hsl(0, 0%, 100%);
-  --popover: hsl(0, 0%, 7%);
-  --popover-foreground: hsl(0, 0%, 100%);
-  --primary: hsl(207, 90%, 54%);
+  --background: hsl(258, 25%, 5%);
+  --foreground: hsl(240, 20%, 95%);
+  --card: hsl(258, 20%, 10%);
+  --card-foreground: hsl(240, 20%, 95%);
+  --popover: hsl(258, 25%, 7%);
+  --popover-foreground: hsl(240, 20%, 95%);
+  --primary: hsl(265, 80%, 58%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(0, 0%, 26%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --muted: hsl(0, 0%, 14.9%);
-  --muted-foreground: hsl(0, 0%, 63.9%);
-  --accent: hsl(0, 0%, 14.9%);
-  --accent-foreground: hsl(0, 0%, 100%);
-  --destructive: hsl(4, 90%, 58%);
+  --secondary: hsl(258, 18%, 18%);
+  --secondary-foreground: hsl(240, 20%, 90%);
+  --muted: hsl(258, 15%, 14%);
+  --muted-foreground: hsl(250, 10%, 58%);
+  --accent: hsl(258, 20%, 16%);
+  --accent-foreground: hsl(240, 20%, 95%);
+  --destructive: hsl(340, 82%, 52%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(0, 0%, 27.5%);
-  --input: hsl(0, 0%, 11.8%);
-  --ring: hsl(207, 90%, 54%);
+  --border: hsl(258, 14%, 22%);
+  --input: hsl(258, 20%, 12%);
+  --ring: hsl(265, 80%, 58%);
 }
 
 @layer base {
@@ -78,54 +78,84 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    background-color: hsl(0, 0%, 7%);
-    color: white;
   }
 }
 
 @layer utilities {
   .text-primary {
-    color: hsl(207, 90%, 54%);
+    color: hsl(265, 80%, 58%);
   }
-  
+
   .text-success {
-    color: hsl(142, 76%, 36%);
+    color: hsl(155, 72%, 44%);
   }
-  
+
   .text-warning {
-    color: hsl(36, 100%, 50%);
+    color: hsl(45, 100%, 55%);
   }
-  
+
   .text-error {
-    color: hsl(4, 90%, 58%);
+    color: hsl(340, 82%, 52%);
   }
-  
+
+  .text-info {
+    color: hsl(220, 85%, 56%);
+  }
+
   .bg-primary {
-    background-color: hsl(207, 90%, 54%);
+    background-color: hsl(265, 80%, 58%);
   }
-  
+
   .bg-success {
-    background-color: hsl(142, 76%, 36%);
+    background-color: hsl(155, 72%, 44%);
   }
-  
+
   .bg-warning {
-    background-color: hsl(36, 100%, 50%);
+    background-color: hsl(45, 100%, 55%);
   }
-  
+
   .bg-error {
-    background-color: hsl(4, 90%, 58%);
+    background-color: hsl(340, 82%, 52%);
   }
-  
+
+  .bg-info {
+    background-color: hsl(220, 85%, 56%);
+  }
+
   .bg-surface {
-    background-color: hsl(0, 0%, 11.8%);
+    background-color: hsl(258, 20%, 10%);
   }
-  
+
+  .bg-dark {
+    background-color: hsl(258, 25%, 5%);
+  }
+
   .border-gray-700 {
-    border-color: hsl(0, 0%, 27.5%);
+    border-color: hsl(258, 14%, 22%);
   }
-  
+
+  .border-gray-600 {
+    border-color: hsl(258, 12%, 28%);
+  }
+
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
+  }
+
+  .border-success {
+    border-color: hsl(155, 72%, 44%);
+  }
+
+  .border-warning {
+    border-color: hsl(45, 100%, 55%);
+  }
+
+  .border-error {
+    border-color: hsl(340, 82%, 52%);
+  }
+
+  .border-info {
+    border-color: hsl(220, 85%, 56%);
   }
 }
 
@@ -136,10 +166,17 @@
 }
 
 .device-popup .leaflet-popup-content-wrapper {
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(80, 40, 160, 0.25);
+  background: hsl(258, 22%, 12%);
+  color: hsl(240, 20%, 90%);
+  border: 1px solid hsl(258, 14%, 24%);
 }
 
 .device-popup .leaflet-popup-tip {
-  background: white;
+  background: hsl(258, 22%, 12%);
+}
+
+.leaflet-container {
+  background: hsl(258, 25%, 5%) !important;
 }

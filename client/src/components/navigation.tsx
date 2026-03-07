@@ -24,7 +24,7 @@ export function Navigation({ activeView, setActiveView }: NavigationProps) {
                 className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
                   activeView === 'dashboard' 
                     ? 'text-primary border-primary' 
-                    : 'text-gray-300 hover:text-white border-transparent'
+                    : 'text-purple-200/60 hover:text-purple-100 border-transparent'
                 }`}
               >
                 Dashboard
@@ -34,7 +34,7 @@ export function Navigation({ activeView, setActiveView }: NavigationProps) {
                 className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
                   activeView === 'analytics' 
                     ? 'text-primary border-primary' 
-                    : 'text-gray-300 hover:text-white border-transparent'
+                    : 'text-purple-200/60 hover:text-purple-100 border-transparent'
                 }`}
               >
                 Analytics
@@ -44,7 +44,7 @@ export function Navigation({ activeView, setActiveView }: NavigationProps) {
                 className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
                   activeView === 'alerts' 
                     ? 'text-primary border-primary' 
-                    : 'text-gray-300 hover:text-white border-transparent'
+                    : 'text-purple-200/60 hover:text-purple-100 border-transparent'
                 }`}
               >
                 Alerts
@@ -54,7 +54,7 @@ export function Navigation({ activeView, setActiveView }: NavigationProps) {
                 className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
                   activeView === 'devices' 
                     ? 'text-primary border-primary' 
-                    : 'text-gray-300 hover:text-white border-transparent'
+                    : 'text-purple-200/60 hover:text-purple-100 border-transparent'
                 }`}
               >
                 Devices
@@ -64,7 +64,7 @@ export function Navigation({ activeView, setActiveView }: NavigationProps) {
                 className={`px-1 pt-1 pb-4 text-sm font-medium cursor-pointer border-b-2 ${
                   activeView === 'maps' 
                     ? 'text-primary border-primary' 
-                    : 'text-gray-300 hover:text-white border-transparent'
+                    : 'text-purple-200/60 hover:text-purple-100 border-transparent'
                 }`}
               >
                 Network Map
@@ -72,11 +72,11 @@ export function Navigation({ activeView, setActiveView }: NavigationProps) {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white relative">
+            <Button variant="ghost" size="icon" className="text-purple-300/60 hover:text-purple-200 relative">
               <i className="fas fa-bell"></i>
               <span className="absolute -top-1 -right-1 h-4 w-4 bg-error rounded-full text-xs flex items-center justify-center">3</span>
             </Button>
-            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+            <Button variant="ghost" size="icon" className="text-purple-300/60 hover:text-purple-200">
               <i className="fas fa-cog"></i>
             </Button>
             <Avatar className="h-8 w-8">

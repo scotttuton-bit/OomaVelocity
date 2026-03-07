@@ -58,14 +58,14 @@ export function GeographicMap() {
           let fillColor: string;
           let borderColor: string;
           if (activeRatio >= 0.9) {
-            fillColor = 'rgba(76, 175, 80, 0.35)';
-            borderColor = '#4CAF50';
+            fillColor = 'rgba(52, 211, 153, 0.3)';
+            borderColor = '#34d399';
           } else if (activeRatio >= 0.5) {
-            fillColor = 'rgba(255, 152, 0, 0.35)';
-            borderColor = '#FF9800';
+            fillColor = 'rgba(250, 204, 21, 0.3)';
+            borderColor = '#facc15';
           } else {
-            fillColor = 'rgba(244, 67, 54, 0.35)';
-            borderColor = '#F44336';
+            fillColor = 'rgba(244, 63, 94, 0.3)';
+            borderColor = '#f43f5e';
           }
 
           const circle = L.circleMarker([loc.latitude, loc.longitude], {
@@ -103,19 +103,19 @@ export function GeographicMap() {
 
           circle.bindPopup(`
             <div style="font-family: system-ui; min-width: 180px;">
-              <div style="font-weight:700; font-size:14px; margin-bottom:8px; color:#111827;">${loc.location}</div>
+              <div style="font-weight:700; font-size:14px; margin-bottom:8px; color:#e2e0f0;">${loc.location}</div>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:8px;">
-                <div style="background:#f0fdf4; padding:4px 8px; border-radius:4px; text-align:center;">
-                  <div style="font-size:18px; font-weight:700; color:#16a34a;">${loc.active}</div>
-                  <div style="font-size:10px; color:#4ade80;">Active</div>
+                <div style="background:rgba(52,211,153,0.12); padding:4px 8px; border-radius:6px; text-align:center; border:1px solid rgba(52,211,153,0.2);">
+                  <div style="font-size:18px; font-weight:700; color:#34d399;">${loc.active}</div>
+                  <div style="font-size:10px; color:#6ee7b7;">Active</div>
                 </div>
-                <div style="background:#fefce8; padding:4px 8px; border-radius:4px; text-align:center;">
-                  <div style="font-size:18px; font-weight:700; color:#ca8a04;">${loc.inactive + loc.offline}</div>
-                  <div style="font-size:10px; color:#facc15;">Down</div>
+                <div style="background:rgba(250,204,21,0.1); padding:4px 8px; border-radius:6px; text-align:center; border:1px solid rgba(250,204,21,0.2);">
+                  <div style="font-size:18px; font-weight:700; color:#facc15;">${loc.inactive + loc.offline}</div>
+                  <div style="font-size:10px; color:#fde68a;">Down</div>
                 </div>
               </div>
-              <div style="font-size:11px; border-top:1px solid #e5e7eb; padding-top:6px;">
-                <div style="font-weight:600; margin-bottom:4px; color:#374151;">Device Types</div>
+              <div style="font-size:11px; border-top:1px solid rgba(139,92,246,0.2); padding-top:6px;">
+                <div style="font-weight:600; margin-bottom:4px; color:#a78bfa;">Device Types</div>
                 ${typeBreakdown}
               </div>
             </div>
@@ -156,31 +156,31 @@ export function GeographicMap() {
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3 text-xs">
-              <div className="flex items-center space-x-1.5 bg-gray-800 px-3 py-1.5 rounded-md">
-                <span className="text-gray-400">Locations</span>
+              <div className="flex items-center space-x-1.5 bg-purple-950/40 px-3 py-1.5 rounded-md border border-purple-500/10">
+                <span className="text-purple-300/60">Locations</span>
                 <span className="text-white font-bold">{totalLocations}</span>
               </div>
-              <div className="flex items-center space-x-1.5 bg-gray-800 px-3 py-1.5 rounded-md">
-                <span className="text-gray-400">Devices</span>
+              <div className="flex items-center space-x-1.5 bg-purple-950/40 px-3 py-1.5 rounded-md border border-purple-500/10">
+                <span className="text-purple-300/60">Devices</span>
                 <span className="text-white font-bold">{totalDevices}</span>
               </div>
-              <div className="flex items-center space-x-1.5 bg-gray-800 px-3 py-1.5 rounded-md">
-                <span className="text-gray-400">Active</span>
-                <span className="text-success font-bold">{totalActive}</span>
+              <div className="flex items-center space-x-1.5 bg-purple-950/40 px-3 py-1.5 rounded-md border border-purple-500/10">
+                <span className="text-purple-300/60">Active</span>
+                <span className="text-emerald-400 font-bold">{totalActive}</span>
               </div>
             </div>
             <div className="flex items-center space-x-2 text-xs">
               <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full mr-1 border-2 border-success bg-success/20"></div>
-                <span className="text-gray-400">All up</span>
+                <div className="w-3 h-3 rounded-full mr-1 border-2 border-emerald-400 bg-emerald-400/20"></div>
+                <span className="text-purple-200/60">All up</span>
               </div>
               <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full mr-1 border-2 border-warning bg-warning/20"></div>
-                <span className="text-gray-400">Partial</span>
+                <div className="w-3 h-3 rounded-full mr-1 border-2 border-yellow-400 bg-yellow-400/20"></div>
+                <span className="text-purple-200/60">Partial</span>
               </div>
               <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full mr-1 border-2 border-error bg-error/20"></div>
-                <span className="text-gray-400">Majority down</span>
+                <div className="w-3 h-3 rounded-full mr-1 border-2 border-rose-400 bg-rose-400/20"></div>
+                <span className="text-purple-200/60">Majority down</span>
               </div>
             </div>
           </div>

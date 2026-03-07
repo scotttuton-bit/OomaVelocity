@@ -51,6 +51,23 @@ function getMaxPoints(duration: Duration): number {
   }
 }
 
+const THEME = {
+  download: '#34d399',
+  downloadBg: 'rgba(52, 211, 153, 0.12)',
+  upload: '#a855f7',
+  uploadBg: 'rgba(168, 85, 247, 0.12)',
+  ping: '#38bdf8',
+  pingBg: 'rgba(56, 189, 248, 0.12)',
+  jitter: '#6366f1',
+  jitterBg: 'rgba(99, 102, 241, 0.12)',
+  grid: 'rgba(139, 92, 246, 0.12)',
+  tick: '#8b8da3',
+  tooltipBg: 'hsl(258, 22%, 12%)',
+  tooltipTitle: '#e2e0f0',
+  tooltipBody: '#a5a3b8',
+  tooltipBorder: 'hsl(258, 14%, 24%)',
+};
+
 export const createSpeedChart = async (
   canvas: HTMLCanvasElement,
   metrics: NetworkMetric[],
@@ -76,8 +93,8 @@ export const createSpeedChart = async (
         {
           label: 'Download',
           data: downloadData,
-          borderColor: '#4CAF50',
-          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          borderColor: THEME.download,
+          backgroundColor: THEME.downloadBg,
           tension: 0.4,
           fill: true,
           pointRadius: sampled.length > 30 ? 0 : 3,
@@ -87,8 +104,8 @@ export const createSpeedChart = async (
         {
           label: 'Upload',
           data: uploadData,
-          borderColor: '#1976D2',
-          backgroundColor: 'rgba(25, 118, 210, 0.1)',
+          borderColor: THEME.upload,
+          backgroundColor: THEME.uploadBg,
           tension: 0.4,
           fill: true,
           pointRadius: sampled.length > 30 ? 0 : 3,
@@ -107,10 +124,10 @@ export const createSpeedChart = async (
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#1f2937',
-          titleColor: '#f3f4f6',
-          bodyColor: '#d1d5db',
-          borderColor: '#374151',
+          backgroundColor: THEME.tooltipBg,
+          titleColor: THEME.tooltipTitle,
+          bodyColor: THEME.tooltipBody,
+          borderColor: THEME.tooltipBorder,
           borderWidth: 1,
           callbacks: {
             label: (ctx: any) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} Mbps`,
@@ -119,15 +136,15 @@ export const createSpeedChart = async (
       },
       scales: {
         y: {
-          grid: { color: '#374151' },
-          ticks: { color: '#9CA3AF', callback: (v: any) => `${v}` },
-          title: { display: true, text: 'Speed (Mbps)', color: '#9CA3AF' },
+          grid: { color: THEME.grid },
+          ticks: { color: THEME.tick, callback: (v: any) => `${v}` },
+          title: { display: true, text: 'Speed (Mbps)', color: THEME.tick },
           beginAtZero: false,
         },
         x: {
-          grid: { color: '#374151' },
+          grid: { color: THEME.grid },
           ticks: {
-            color: '#9CA3AF',
+            color: THEME.tick,
             maxRotation: 45,
             autoSkip: true,
             maxTicksLimit: 12,
@@ -166,8 +183,8 @@ export const createLatencyChart = async (
         {
           label: 'Ping',
           data: pingData,
-          borderColor: '#FF9800',
-          backgroundColor: 'rgba(255, 152, 0, 0.1)',
+          borderColor: THEME.ping,
+          backgroundColor: THEME.pingBg,
           tension: 0.4,
           fill: true,
           pointRadius: sampled.length > 30 ? 0 : 3,
@@ -177,8 +194,8 @@ export const createLatencyChart = async (
         {
           label: 'Jitter',
           data: jitterData,
-          borderColor: '#F44336',
-          backgroundColor: 'rgba(244, 67, 54, 0.1)',
+          borderColor: THEME.jitter,
+          backgroundColor: THEME.jitterBg,
           tension: 0.4,
           fill: true,
           pointRadius: sampled.length > 30 ? 0 : 3,
@@ -197,10 +214,10 @@ export const createLatencyChart = async (
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#1f2937',
-          titleColor: '#f3f4f6',
-          bodyColor: '#d1d5db',
-          borderColor: '#374151',
+          backgroundColor: THEME.tooltipBg,
+          titleColor: THEME.tooltipTitle,
+          bodyColor: THEME.tooltipBody,
+          borderColor: THEME.tooltipBorder,
           borderWidth: 1,
           callbacks: {
             label: (ctx: any) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} ms`,
@@ -209,15 +226,15 @@ export const createLatencyChart = async (
       },
       scales: {
         y: {
-          grid: { color: '#374151' },
-          ticks: { color: '#9CA3AF' },
-          title: { display: true, text: 'Latency (ms)', color: '#9CA3AF' },
+          grid: { color: THEME.grid },
+          ticks: { color: THEME.tick },
+          title: { display: true, text: 'Latency (ms)', color: THEME.tick },
           beginAtZero: true,
         },
         x: {
-          grid: { color: '#374151' },
+          grid: { color: THEME.grid },
           ticks: {
-            color: '#9CA3AF',
+            color: THEME.tick,
             maxRotation: 45,
             autoSkip: true,
             maxTicksLimit: 12,

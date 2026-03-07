@@ -89,7 +89,7 @@ export function DataExport() {
           <h3 className="text-lg font-medium text-white">Data Export & Reports</h3>
           <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-blue-700">
+              <Button className="bg-primary hover:bg-violet-700">
                 <i className="fas fa-upload mr-2"></i>
                 Import CSV
               </Button>
@@ -109,7 +109,7 @@ export function DataExport() {
                     type="file"
                     accept=".csv"
                     onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
-                    className="bg-gray-700 border-gray-600 text-white"
+                    className="bg-purple-950/40 border-purple-500/20 text-white"
                   />
                 </div>
                 <div>
@@ -119,7 +119,7 @@ export function DataExport() {
                     value={deviceId}
                     onChange={(e) => setDeviceId(e.target.value)}
                     placeholder="e.g., main-router-01"
-                    className="bg-gray-700 border-gray-600 text-white"
+                    className="bg-purple-950/40 border-purple-500/20 text-white"
                   />
                 </div>
                 <div>
@@ -129,13 +129,13 @@ export function DataExport() {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="e.g., San Francisco, CA"
-                    className="bg-gray-700 border-gray-600 text-white"
+                    className="bg-purple-950/40 border-purple-500/20 text-white"
                   />
                 </div>
                 <Button
                   onClick={() => importMutation.mutate()}
                   disabled={!csvFile || importMutation.isPending}
-                  className="w-full bg-primary hover:bg-blue-700"
+                  className="w-full bg-primary hover:bg-violet-700"
                 >
                   {importMutation.isPending ? "Importing..." : "Import CSV"}
                 </Button>
@@ -146,37 +146,37 @@ export function DataExport() {
       </div>
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-6 border-2 border-dashed border-gray-600 rounded-lg hover:border-primary hover:bg-gray-800 cursor-pointer transition-colors">
-            <i className="fas fa-file-csv text-success text-3xl mb-3"></i>
+          <div className="text-center p-6 border-2 border-dashed border-purple-500/20 rounded-lg hover:border-emerald-500/50 hover:bg-emerald-500/5 cursor-pointer transition-colors">
+            <i className="fas fa-file-csv text-emerald-400 text-3xl mb-3"></i>
             <h4 className="text-lg font-medium text-white mb-2">CSV Export</h4>
             <p className="text-sm text-gray-400 mb-4">Raw network performance data in CSV format</p>
             <Button
               onClick={() => exportMutation.mutate("csv")}
               disabled={exportMutation.isPending}
-              className="bg-success hover:bg-green-600"
+              className="bg-emerald-600 hover:bg-emerald-700"
             >
               Download CSV
             </Button>
           </div>
 
-          <div className="text-center p-6 border-2 border-dashed border-gray-600 rounded-lg hover:border-primary hover:bg-gray-800 cursor-pointer transition-colors">
-            <i className="fas fa-file-pdf text-error text-3xl mb-3"></i>
+          <div className="text-center p-6 border-2 border-dashed border-purple-500/20 rounded-lg hover:border-blue-500/50 hover:bg-blue-500/5 cursor-pointer transition-colors">
+            <i className="fas fa-file-pdf text-blue-400 text-3xl mb-3"></i>
             <h4 className="text-lg font-medium text-white mb-2">PDF Report</h4>
             <p className="text-sm text-gray-400 mb-4">Comprehensive performance report with charts</p>
             <Button
               onClick={() => exportMutation.mutate("pdf")}
               disabled={exportMutation.isPending}
-              className="bg-error hover:bg-red-600"
+              className="bg-blue-600 hover:bg-blue-700"
             >
               Generate PDF
             </Button>
           </div>
 
-          <div className="text-center p-6 border-2 border-dashed border-gray-600 rounded-lg hover:border-primary hover:bg-gray-800 cursor-pointer transition-colors">
-            <i className="fas fa-code text-primary text-3xl mb-3"></i>
+          <div className="text-center p-6 border-2 border-dashed border-purple-500/20 rounded-lg hover:border-violet-500/50 hover:bg-violet-500/5 cursor-pointer transition-colors">
+            <i className="fas fa-code text-violet-400 text-3xl mb-3"></i>
             <h4 className="text-lg font-medium text-white mb-2">API Access</h4>
             <p className="text-sm text-gray-400 mb-4">Programmatic access to network data</p>
-            <Button className="bg-primary hover:bg-blue-700">
+            <Button className="bg-primary hover:bg-violet-700">
               View API Docs
             </Button>
           </div>

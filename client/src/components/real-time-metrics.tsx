@@ -127,13 +127,13 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-400">Upload Speed</p>
-              <p className="text-3xl font-bold text-primary font-mono">
+              <p className="text-3xl font-bold text-purple-400 font-mono">
                 {metrics.uploadSpeed.toFixed(1)}
               </p>
               <p className="text-sm text-gray-400">Mbps</p>
             </div>
-            <div className="h-12 w-12 bg-primary bg-opacity-20 rounded-full flex items-center justify-center">
-              <i className="fas fa-upload text-primary text-xl"></i>
+            <div className="h-12 w-12 bg-purple-500/20 rounded-full flex items-center justify-center">
+              <i className="fas fa-upload text-purple-400 text-xl"></i>
             </div>
           </div>
           <div className="mt-4">
@@ -153,19 +153,19 @@ export function RealTimeMetrics({ duration }: RealTimeMetricsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-400">Ping Latency</p>
-              <p className="text-3xl font-bold text-warning font-mono">
+              <p className="text-3xl font-bold text-info font-mono">
                 {metrics.pingLatency.toFixed(1)}
               </p>
               <p className="text-sm text-gray-400">ms</p>
             </div>
-            <div className="h-12 w-12 bg-warning bg-opacity-20 rounded-full flex items-center justify-center">
-              <i className="fas fa-stopwatch text-warning text-xl"></i>
+            <div className="h-12 w-12 bg-info/20 rounded-full flex items-center justify-center">
+              <i className="fas fa-stopwatch text-info text-xl"></i>
             </div>
           </div>
           <div className="mt-4">
             <div className="flex items-center text-sm">
-              <i className={`fas ${metrics.pingChange <= 0 ? 'fa-arrow-down text-success' : 'fa-arrow-up text-warning'} mr-1`}></i>
-              <span className={metrics.pingChange <= 0 ? 'text-success' : 'text-warning'}>
+              <i className={`fas ${metrics.pingChange <= 0 ? 'fa-arrow-down text-success' : 'fa-arrow-up text-info'} mr-1`}></i>
+              <span className={metrics.pingChange <= 0 ? 'text-success' : 'text-info'}>
                 {Math.abs(metrics.pingChange).toFixed(1)}%
               </span>
               <span className="text-gray-400 ml-1">vs {periodLabel.toLowerCase()}</span>

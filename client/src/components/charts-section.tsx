@@ -69,12 +69,12 @@ export function ChartsSection({ duration }: ChartsSectionProps) {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-white">Speed Over Time</h3>
             <div className="flex space-x-2">
-              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-success bg-opacity-20 text-success rounded">
-                <span className="w-2 h-2 bg-success rounded-full mr-1"></span>
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 rounded">
+                <span className="w-2 h-2 bg-emerald-400 rounded-full mr-1"></span>
                 Download
               </span>
-              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-primary bg-opacity-20 text-primary rounded">
-                <span className="w-2 h-2 bg-primary rounded-full mr-1"></span>
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-500/20 text-purple-400 rounded">
+                <span className="w-2 h-2 bg-purple-400 rounded-full mr-1"></span>
                 Upload
               </span>
             </div>
@@ -100,12 +100,12 @@ export function ChartsSection({ duration }: ChartsSectionProps) {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-white">Ping & Jitter</h3>
             <div className="flex space-x-2">
-              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-warning bg-opacity-20 text-warning rounded">
-                <span className="w-2 h-2 bg-warning rounded-full mr-1"></span>
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-sky-500/20 text-sky-400 rounded">
+                <span className="w-2 h-2 bg-sky-400 rounded-full mr-1"></span>
                 Ping
               </span>
-              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-error bg-opacity-20 text-error rounded">
-                <span className="w-2 h-2 bg-error rounded-full mr-1"></span>
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-500/20 text-indigo-400 rounded">
+                <span className="w-2 h-2 bg-indigo-400 rounded-full mr-1"></span>
                 Jitter
               </span>
             </div>

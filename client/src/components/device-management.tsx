@@ -13,21 +13,21 @@ export function DeviceManagement() {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-500';
+        return 'bg-emerald-500';
       case 'inactive':
-        return 'bg-red-500';
+        return 'bg-rose-500';
       case 'warning':
-        return 'bg-yellow-500';
+        return 'bg-amber-500';
       default:
-        return 'bg-gray-500';
+        return 'bg-purple-400/40';
     }
   };
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="animate-pulse bg-gray-800 h-32 rounded-lg"></div>
-        <div className="animate-pulse bg-gray-800 h-32 rounded-lg"></div>
+        <div className="animate-pulse bg-purple-900/30 h-32 rounded-lg"></div>
+        <div className="animate-pulse bg-purple-900/30 h-32 rounded-lg"></div>
       </div>
     );
   }
@@ -95,7 +95,7 @@ export function DeviceManagement() {
           <CardTitle className="text-white">Add New Device</CardTitle>
         </CardHeader>
         <CardContent>
-          <Button className="bg-primary hover:bg-blue-700">
+          <Button className="bg-primary hover:bg-violet-700">
             <i className="fas fa-plus mr-2"></i>
             Register New Device
           </Button>

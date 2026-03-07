@@ -55,8 +55,8 @@ export function AnalyticsSection() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="animate-pulse bg-gray-800 h-32 rounded-lg"></div>
-        <div className="animate-pulse bg-gray-800 h-64 rounded-lg"></div>
+        <div className="animate-pulse bg-purple-900/30 h-32 rounded-lg"></div>
+        <div className="animate-pulse bg-purple-900/30 h-64 rounded-lg"></div>
       </div>
     );
   }
@@ -102,7 +102,7 @@ export function AnalyticsSection() {
               </Select>
             </div>
 
-            <Button className="bg-primary hover:bg-blue-700">
+            <Button className="bg-primary hover:bg-violet-700">
               <i className="fas fa-filter mr-2"></i>
               Apply Filters
             </Button>

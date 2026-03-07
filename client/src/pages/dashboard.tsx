@@ -131,7 +131,7 @@ export default function Dashboard() {
                         </SelectContent>
                       </Select>
                       <Button
-                        className="bg-primary hover:bg-blue-700"
+                        className="bg-primary hover:bg-violet-700"
                         onClick={handleRefresh}
                         disabled={isRefreshing}
                       >

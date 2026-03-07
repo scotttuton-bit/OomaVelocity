@@ -9,13 +9,14 @@ The application supports multi-device monitoring with real-time updates via WebS
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Preferred color theme: Dark purple-tinted backgrounds with purples, violets, blues, and greens as accent colors. Contrasting colors (amber/gold for warnings, rose/pink for errors) complement the cool-tone palette.
 
 ## System Architecture
 
 ### Frontend Architecture
 The client-side application is built using **React 18** with TypeScript and follows a component-based architecture. The frontend uses **Vite** as the build tool and development server, providing fast hot module replacement and optimized builds. Routing is handled by **Wouter**, a lightweight client-side router.
 
-**UI Framework**: The application leverages **shadcn/ui** components built on top of **Radix UI** primitives, providing accessible and customizable components. **Tailwind CSS** is used for styling with a dark theme optimized for network monitoring dashboards.
+**UI Framework**: The application leverages **shadcn/ui** components built on top of **Radix UI** primitives, providing accessible and customizable components. **Tailwind CSS** is used for styling with a purple-tinted dark theme. The color system uses CSS custom properties defined in `client/src/index.css` with a palette of: violet primary (`hsl(265,80%,58%)`), blue info (`hsl(220,85%,56%)`), emerald success (`hsl(155,72%,44%)`), amber warning (`hsl(45,100%,55%)`), and rose error (`hsl(340,82%,52%)`). Chart colors (in `client/src/lib/chart-utils.ts`) use emerald for download, purple for upload, sky-blue for ping, and indigo for jitter.
 
 **State Management**: **TanStack Query** (React Query) manages server state, caching, and data synchronization. The application uses custom hooks for WebSocket connections to enable real-time updates.
 

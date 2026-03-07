@@ -24,22 +24,22 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
         <div className="flex-1 px-3 space-y-1">
           {/* Quick Stats */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Quick Overview</h3>
+            <h3 className="text-xs font-semibold text-purple-300/50 uppercase tracking-wide">Quick Overview</h3>
             <div className="mt-3 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">Active Devices</span>
+                <span className="text-sm text-purple-200/70">Active Devices</span>
                 <span className="text-sm font-mono text-success">
                   {stats?.activeDevices ?? '--'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">Network Score</span>
+                <span className="text-sm text-purple-200/70">Network Score</span>
                 <span className="text-sm font-mono text-success">
                   {stats?.networkScore ?? '--'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">Active Alerts</span>
+                <span className="text-sm text-purple-200/70">Active Alerts</span>
                 <span className="text-sm font-mono text-warning">
                   {stats?.activeAlerts ?? '--'}
                 </span>
@@ -49,14 +49,14 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
 
           {/* Navigation */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Navigation</h3>
+            <h3 className="text-xs font-semibold text-purple-300/50 uppercase tracking-wide">Navigation</h3>
             <nav className="mt-3 space-y-1">
               <button 
                 onClick={() => setActiveView('dashboard')}
                 className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   activeView === 'dashboard' 
                     ? 'bg-primary text-white' 
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    : 'text-purple-200/70 hover:bg-purple-500/10 hover:text-purple-100'
                 }`}
               >
                 <i className="fas fa-tachometer-alt mr-3"></i>
@@ -67,7 +67,7 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
                 className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   activeView === 'analytics' 
                     ? 'bg-primary text-white' 
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    : 'text-purple-200/70 hover:bg-purple-500/10 hover:text-purple-100'
                 }`}
               >
                 <i className="fas fa-chart-line mr-3"></i>
@@ -78,7 +78,7 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
                 className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   activeView === 'alerts' 
                     ? 'bg-primary text-white' 
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    : 'text-purple-200/70 hover:bg-purple-500/10 hover:text-purple-100'
                 }`}
               >
                 <i className="fas fa-exclamation-triangle mr-3"></i>
@@ -89,7 +89,7 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
                 className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   activeView === 'devices' 
                     ? 'bg-primary text-white' 
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    : 'text-purple-200/70 hover:bg-purple-500/10 hover:text-purple-100'
                 }`}
               >
                 <i className="fas fa-server mr-3"></i>
@@ -100,7 +100,7 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
                 className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   activeView === 'maps' 
                     ? 'bg-primary text-white' 
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    : 'text-purple-200/70 hover:bg-purple-500/10 hover:text-purple-100'
                 }`}
               >
                 <i className="fas fa-globe-americas mr-3"></i>
@@ -111,7 +111,7 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
                 className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
                   activeView === 'export' 
                     ? 'bg-primary text-white' 
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    : 'text-purple-200/70 hover:bg-purple-500/10 hover:text-purple-100'
                 }`}
               >
                 <i className="fas fa-download mr-3"></i>

@@ -8,25 +8,28 @@ import { durationToMs } from "@/pages/dashboard";
 
 interface ChartsSectionProps {
   duration: Duration;
+  location: string;
 }
 
-function buildTimeRangeUrl(duration: Duration): string {
+function buildTimeRangeUrl(duration: Duration, location: string): string {
   const now = Date.now();
   const from = new Date(now - durationToMs(duration)).toISOString();
   const to = new Date(now).toISOString();
-  return `/api/metrics?from=${from}&to=${to}`;
+  let url = `/api/metrics?from=${from}&to=${to}`;
+  if (location && location !== 'all') url += `&location=${encodeURIComponent(location)}`;
+  return url;
 }
 
-export function ChartsSection({ duration }: ChartsSectionProps) {
+export function ChartsSection({ duration, location }: ChartsSectionProps) {
   const speedChartRef = useRef<HTMLCanvasElement>(null);
   const latencyChartRef = useRef<HTMLCanvasElement>(null);
   const speedChartInstance = useRef<any>(null);
   const latencyChartInstance = useRef<any>(null);
 
   const { data: metrics, isLoading } = useQuery<NetworkMetric[]>({
-    queryKey: ['/api/metrics', duration],
+    queryKey: ['/api/metrics', duration, location],
     queryFn: async () => {
-      const res = await fetch(buildTimeRangeUrl(duration));
+      const res = await fetch(buildTimeRangeUrl(duration, location));
       if (!res.ok) throw new Error('Failed to fetch metrics');
       return res.json();
     },
@@ -60,7 +63,7 @@ export function ChartsSection({ duration }: ChartsSectionProps) {
         latencyChartInstance.current = null;
       }
     };
-  }, [metrics, duration]);
+  }, [metrics, duration, location]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

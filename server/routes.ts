@@ -53,14 +53,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Network metrics endpoints
   app.get('/api/metrics', async (req, res) => {
     try {
-      const { limit, deviceId, from, to } = req.query;
+      const { limit, deviceId, from, to, location } = req.query;
       let metrics;
 
       if (from && to) {
         metrics = await storage.getMetricsInRange(
           new Date(from as string),
           new Date(to as string),
-          deviceId as string
+          deviceId as string,
+          location as string
         );
       } else {
         metrics = await storage.getNetworkMetrics(
@@ -78,8 +79,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/metrics/latest', async (req, res) => {
     try {
-      const { deviceId } = req.query;
-      const metrics = await storage.getLatestMetrics(deviceId as string);
+      const { deviceId, location } = req.query;
+      const metrics = await storage.getLatestMetrics(deviceId as string, location as string);
       res.json(metrics);
     } catch (error) {
       console.error('Error fetching latest metrics:', error);

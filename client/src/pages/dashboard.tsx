@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { RealTimeMetrics } from "@/components/real-time-metrics";
@@ -12,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { queryClient } from "@/lib/queryClient";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, MapPin } from "lucide-react";
 
 type ViewType = 'dashboard' | 'analytics' | 'alerts' | 'devices' | 'maps' | 'export';
 export type Duration = '1h' | '6h' | '24h' | '7d' | '30d' | '90d';
@@ -39,11 +40,23 @@ export function durationToLabel(duration: Duration): string {
   }
 }
 
+interface LocationData {
+  location: string;
+  latitude: number;
+  longitude: number;
+  devices: { id: string; name: string; status: string }[];
+}
+
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [duration, setDuration] = useState<Duration>('1h');
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   useWebSocket();
+
+  const { data: locations } = useQuery<LocationData[]>({
+    queryKey: ['/api/devices/locations'],
+  });
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -56,8 +69,8 @@ export default function Dashboard() {
       case 'dashboard':
         return (
           <>
-            <RealTimeMetrics duration={duration} />
-            <ChartsSection duration={duration} />
+            <RealTimeMetrics duration={duration} location={selectedLocation} />
+            <ChartsSection duration={duration} location={selectedLocation} />
             <GeographicMap />
           </>
         );
@@ -74,8 +87,8 @@ export default function Dashboard() {
       default:
         return (
           <>
-            <RealTimeMetrics duration={duration} />
-            <ChartsSection duration={duration} />
+            <RealTimeMetrics duration={duration} location={selectedLocation} />
+            <ChartsSection duration={duration} location={selectedLocation} />
           </>
         );
     }
@@ -123,6 +136,20 @@ export default function Dashboard() {
                       <p className="mt-2 text-sm text-gray-400">{getViewDescription()}</p>
                     </div>
                     <div className="mt-4 sm:mt-0 sm:ml-4 flex space-x-3">
+                      <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                        <SelectTrigger className="bg-surface border-gray-600 text-white w-48">
+                          <MapPin className="h-4 w-4 mr-1 text-purple-400 shrink-0" />
+                          <SelectValue placeholder="All Locations" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Locations</SelectItem>
+                          {locations?.map((loc) => (
+                            <SelectItem key={loc.location} value={loc.location}>
+                              {loc.location}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <Select value={duration} onValueChange={(v) => setDuration(v as Duration)}>
                         <SelectTrigger className="bg-surface border-gray-600 text-white w-40">
                           <SelectValue />

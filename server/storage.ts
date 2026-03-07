@@ -19,8 +19,8 @@ export interface IStorage {
   // Network Metrics
   createNetworkMetric(metric: InsertNetworkMetric): Promise<NetworkMetric>;
   getNetworkMetrics(limit?: number, deviceId?: string): Promise<NetworkMetric[]>;
-  getLatestMetrics(deviceId?: string): Promise<NetworkMetric[]>;
-  getMetricsInRange(from: Date, to: Date, deviceId?: string): Promise<NetworkMetric[]>;
+  getLatestMetrics(deviceId?: string, location?: string): Promise<NetworkMetric[]>;
+  getMetricsInRange(from: Date, to: Date, deviceId?: string, location?: string): Promise<NetworkMetric[]>;
   
   // Devices
   createDevice(device: InsertDevice): Promise<Device>;
@@ -73,7 +73,7 @@ export class DatabaseStorage implements IStorage {
     return query;
   }
 
-  async getLatestMetrics(deviceId?: string): Promise<NetworkMetric[]> {
+  async getLatestMetrics(deviceId?: string, location?: string): Promise<NetworkMetric[]> {
     if (deviceId) {
       const [latest] = await db
         .select()
@@ -84,7 +84,22 @@ export class DatabaseStorage implements IStorage {
       return latest ? [latest] : [];
     }
 
-    // Get latest metric per device
+    if (location) {
+      const latestMetrics = await db
+        .select()
+        .from(networkMetrics)
+        .where(and(
+          eq(networkMetrics.location, location),
+          sql`(${networkMetrics.deviceId}, ${networkMetrics.timestampIso}) IN (
+            SELECT ${networkMetrics.deviceId}, MAX(${networkMetrics.timestampIso})
+            FROM ${networkMetrics}
+            WHERE ${networkMetrics.location} = ${location}
+            GROUP BY ${networkMetrics.deviceId}
+          )`
+        ));
+      return latestMetrics;
+    }
+
     const latestMetrics = await db
       .select()
       .from(networkMetrics)
@@ -97,20 +112,19 @@ export class DatabaseStorage implements IStorage {
     return latestMetrics;
   }
 
-  async getMetricsInRange(from: Date, to: Date, deviceId?: string): Promise<NetworkMetric[]> {
-    const query = db
+  async getMetricsInRange(from: Date, to: Date, deviceId?: string, location?: string): Promise<NetworkMetric[]> {
+    const conditions = [
+      gte(networkMetrics.timestampIso, from),
+      lte(networkMetrics.timestampIso, to),
+    ];
+    if (deviceId) conditions.push(eq(networkMetrics.deviceId, deviceId));
+    if (location) conditions.push(eq(networkMetrics.location, location));
+
+    return db
       .select()
       .from(networkMetrics)
-      .where(
-        and(
-          gte(networkMetrics.timestampIso, from),
-          lte(networkMetrics.timestampIso, to),
-          deviceId ? eq(networkMetrics.deviceId, deviceId) : undefined
-        )
-      )
+      .where(and(...conditions))
       .orderBy(asc(networkMetrics.timestampIso));
-
-    return query;
   }
 
   async createDevice(device: InsertDevice): Promise<Device> {

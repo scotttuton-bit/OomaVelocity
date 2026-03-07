@@ -2,7 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertNetworkMetricSchema, insertDeviceSchema, insertAlertSchema, insertExportRequestSchema } from "@shared/schema";
+import { db } from "./db";
+import { networkMetrics, insertNetworkMetricSchema, insertDeviceSchema, insertAlertSchema, insertExportRequestSchema } from "@shared/schema";
+import { and, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import multer from "multer";
 import csv from "csv-parser";
@@ -74,6 +76,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching metrics:', error);
       res.status(500).json({ error: 'Failed to fetch metrics' });
+    }
+  });
+
+  app.get('/api/metrics/locations', async (req, res) => {
+    try {
+      const { from, to } = req.query;
+      if (!from || !to) {
+        return res.status(400).json({ error: 'from and to query params required' });
+      }
+      const locations = await db
+        .selectDistinct({ location: networkMetrics.location })
+        .from(networkMetrics)
+        .where(
+          and(
+            gte(networkMetrics.timestampIso, new Date(from as string)),
+            lte(networkMetrics.timestampIso, new Date(to as string)),
+            sql`${networkMetrics.location} IS NOT NULL`
+          )
+        );
+      res.json(locations.map(l => l.location));
+    } catch (error) {
+      console.error('Error fetching metric locations:', error);
+      res.status(500).json({ error: 'Failed to fetch metric locations' });
     }
   });
 

@@ -58,6 +58,19 @@ export default function Dashboard() {
     queryKey: ['/api/devices/locations'],
   });
 
+  const { data: availableLocations } = useQuery<string[]>({
+    queryKey: ['/api/metrics/locations', duration],
+    queryFn: async () => {
+      const now = Date.now();
+      const from = new Date(now - durationToMs(duration)).toISOString();
+      const to = new Date(now).toISOString();
+      const res = await fetch(`/api/metrics/locations?from=${from}&to=${to}`);
+      if (!res.ok) throw new Error('Failed to fetch available locations');
+      return res.json();
+    },
+    staleTime: 10000,
+  });
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await queryClient.invalidateQueries();
@@ -136,21 +149,19 @@ export default function Dashboard() {
                       <p className="mt-2 text-sm text-gray-400">{getViewDescription()}</p>
                     </div>
                     <div className="mt-4 sm:mt-0 sm:ml-4 flex space-x-3">
-                      <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                        <SelectTrigger className="bg-surface border-gray-600 text-white w-48">
-                          <MapPin className="h-4 w-4 mr-1 text-purple-400 shrink-0" />
-                          <SelectValue placeholder="All Locations" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Locations</SelectItem>
-                          {locations?.map((loc) => (
-                            <SelectItem key={loc.location} value={loc.location}>
-                              {loc.location}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={duration} onValueChange={(v) => setDuration(v as Duration)}>
+                      <Select value={duration} onValueChange={(v) => {
+                        setDuration(v as Duration);
+                        if (selectedLocation && selectedLocation !== 'all') {
+                          const now = Date.now();
+                          const from = new Date(now - durationToMs(v as Duration)).toISOString();
+                          const to = new Date(now).toISOString();
+                          fetch(`/api/metrics/locations?from=${from}&to=${to}`)
+                            .then(r => r.json())
+                            .then((locs: string[]) => {
+                              if (!locs.includes(selectedLocation)) setSelectedLocation('all');
+                            });
+                        }
+                      }}>
                         <SelectTrigger className="bg-surface border-gray-600 text-white w-40">
                           <SelectValue />
                         </SelectTrigger>
@@ -161,6 +172,28 @@ export default function Dashboard() {
                           <SelectItem value="7d">Last 7 Days</SelectItem>
                           <SelectItem value="30d">Last 30 Days</SelectItem>
                           <SelectItem value="90d">Last 90 Days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={selectedLocation || 'all'} onValueChange={setSelectedLocation}>
+                        <SelectTrigger className="bg-surface border-gray-600 text-white w-48">
+                          <MapPin className="h-4 w-4 mr-1 text-purple-400 shrink-0" />
+                          <SelectValue placeholder="All Locations" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Locations</SelectItem>
+                          {locations?.map((loc) => {
+                            const hasData = availableLocations?.includes(loc.location);
+                            return (
+                              <SelectItem
+                                key={loc.location}
+                                value={loc.location}
+                                disabled={!hasData}
+                                className={!hasData ? 'opacity-40' : ''}
+                              >
+                                {loc.location}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <Button
